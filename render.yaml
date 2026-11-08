@@ -1,0 +1,36 @@
+# This provisions a PAID web service and persistent disk only when you approve deployment.
+# All credentials are set privately in Render, never in Git or the frontend.
+services:
+  - type: web
+    name: bloom-instagram-backend
+    runtime: node
+    branch: arena/d3fb70ad-instagram-automation
+    plan: starter
+    buildCommand: npm ci --omit=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeployTrigger: "off"
+    disk:
+      name: bloom-private-data
+      mountPath: /var/data/bloom
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: /var/data/bloom/bloom.sqlite
+      - key: META_API_VERSION
+        value: v26.0
+      - key: META_APP_ID
+        sync: false
+      - key: META_APP_SECRET
+        sync: false
+      - key: META_LOGIN_CONFIG_ID
+        sync: false
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: TOKEN_ENCRYPTION_KEY
+        generateValue: true
+# PUBLIC_BASE_URL defaults to Render's RENDER_EXTERNAL_URL. Set it manually if using a custom domain.

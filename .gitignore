@@ -5,3 +5,7 @@ dist/
 !.env.example
 image-search/
 *.log
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

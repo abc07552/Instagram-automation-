@@ -366,7 +366,7 @@
     return `${posts.map(postCard).join("")}${!posts.length && state.search ? '<p class="empty-search">No content matches your search. Try a different word or filter.</p>' : ""}<button class="add-post" data-action="new-post"><span>${icon("plus", 25)}</span><strong>Make room for a new idea</strong><p>Create your next post, reel, or story</p></button>`;
   }
   function planner() {
-    return `<div class="planner-note">${icon("calendar", 20)}<div><strong>Your plan, all in one place.</strong><p>Drafts and schedules are saved in this browser. Connect Instagram to enable publishing.</p></div><button class="button secondary" data-modal="account">Connect account ${icon("arrow-up-right", 14)}</button></div><section class="card planner-card"><div class="planner-toolbar"><div class="tabs" aria-label="Filter content">${["All content", "Reel", "Post", "Story", "Draft"].map((t) => `<button class="${state.filter === t ? "selected" : ""}" data-filter="${t}" aria-pressed="${state.filter === t}">${t}</button>`).join("")}</div><label class="search-input">${icon("search", 16)}<input type="search" aria-label="Search your content" placeholder="Search your content" id="content-search" value="${escape(state.search)}"/></label></div><div class="planner-grid" id="planner-grid">${plannerCards()}</div></section>`;
+    return `<div class="planner-note">${icon("calendar", 20)}<div><strong>Your plan, all in one place.</strong><p>Drafts and schedules are saved in this browser. Connect your account below; automatic publishing is not enabled yet.</p></div><button class="button secondary" data-modal="account">Connect account ${icon("arrow-up-right", 14)}</button></div><section class="card planner-card"><div class="planner-toolbar"><div class="tabs" aria-label="Filter content">${["All content", "Reel", "Post", "Story", "Draft"].map((t) => `<button class="${state.filter === t ? "selected" : ""}" data-filter="${t}" aria-pressed="${state.filter === t}">${t}</button>`).join("")}</div><label class="search-input">${icon("search", 16)}<input type="search" aria-label="Search your content" placeholder="Search your content" id="content-search" value="${escape(state.search)}"/></label></div><div class="planner-grid" id="planner-grid">${plannerCards()}</div></section>`;
   }
   function chatMessages() {
     const welcome = `<div class="chat-welcome">${icon("sparkles", 36)}<h2>What shall we create today?</h2><p>Let’s turn a blank page into something that feels like you.</p><div class="prompt-options">${["Plan a week of content", "Analyze my performance", "Write a slow-living reel caption", "Suggest engaging story ideas"].map((text) => `<button data-ask="${escape(text)}">${escape(text)}${icon("arrow-up-right", 14)}</button>`).join("")}</div></div>`;
@@ -461,7 +461,7 @@
     const feature = (name) =>
       `<span class="modal-feature-icon">${icon(name, 28)}</span>`;
     if (type === "account")
-      return `${feature("instagram")}${title("A home for your Instagram")}<p class="modal-copy">You’re exploring a demo workspace. Your real Instagram account is not connected, and no content is automatically published.</p><div class="connection-card"><div class="avatar">AM</div><div><strong>Alex Morgan</strong><small>Demo profile · @alex.creates</small></div><span class="status draft">Not connected</span></div><h3>What you’ll need for live publishing</h3><ul class="requirements">${["An eligible Instagram professional account", "Meta app setup and approved permissions", "A secure backend for tokens and scheduled jobs"].map((text) => `<li>${icon("check", 16)}${text}</li>`).join("")}</ul><p class="form-notice">This build doesn’t include a Meta OAuth backend. Never share your Instagram password or access token here.</p><button class="button primary full" data-page="planner">Explore your planner ${icon("arrow-right", 16)}</button>`;
+      return `${feature("instagram")}${title("Connect your Instagram")}<p class="modal-copy">Sign in securely through Meta. Your Instagram password and access token never belong in this website’s forms.</p><div id="connection-panel"><p class="connection-loading" role="status">Checking backend…</p></div>`;
     if (type === "settings")
       return `${feature("settings")}${title("Your workspace, your way")}<p class="modal-copy">Your drafts, schedules, and saved ideas stay in this browser.</p><div class="setting-row"><span>Workspace</span><strong>Alex’s workspace</strong></div><div class="setting-row"><span>Time zone</span><strong>${escape(Intl.DateTimeFormat().resolvedOptions().timeZone)}</strong></div><div class="setting-row"><span>Publishing</span><span class="status draft">Not connected</span></div><button class="button secondary full" data-modal="account">Manage Instagram connection ${icon("arrow-up-right", 15)}</button>`;
     if (type === "upgrade")
@@ -480,6 +480,7 @@
     document.body.style.overflow = "hidden";
     $(".app").inert = true;
     (type === "post" ? $('#post-form [name="title"]') : $("#modal")).focus();
+    if (type === "account") refreshConnection();
   }
   function closeModal() {
     state.modal = null;
@@ -668,10 +669,160 @@
     notify("Your report has been downloaded");
   }
 
+  // Same-origin only: the hosted backend serves this interface alongside its API.
+  // GitHub Pages stays static and links to the separate secure service.
+  let backendConnection = null;
+  const connectionErrors = {
+    incorrect_owner_password:
+      "That Bloom owner password is incorrect. Use ADMIN_PASSWORD from your hosting dashboard, not your Instagram password.",
+    owner_login_required: "Your owner session expired. Sign in again.",
+    owner_password_not_configured:
+      "Set ADMIN_PASSWORD in the hosting dashboard first (at least 16 characters).",
+    backend_not_configured:
+      "Complete the backend environment settings before starting Meta login.",
+    too_many_login_attempts:
+      "Too many sign-in attempts. Please wait 15 minutes.",
+    start_connection_again:
+      "The account selection expired. Start Meta login again.",
+    reconnect_required:
+      "Meta access has expired or been revoked. Please reconnect.",
+    provider_unavailable:
+      "Meta could not complete the request. Check your app settings and try again.",
+    invalid_request_origin:
+      "The service address does not match PUBLIC_BASE_URL in the hosting settings.",
+  };
+  async function backendRequest(path, options = {}) {
+    const response = await fetch(path, {
+      credentials: "same-origin",
+      cache: "no-store",
+      signal: AbortSignal.timeout(20000),
+      ...options,
+    });
+    if (!response.headers.get("content-type")?.includes("application/json"))
+      throw new Error("backend_unavailable");
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "backend_unavailable");
+    return body;
+  }
+  function connectionPanel(data) {
+    if (!data?.backend)
+      return `<div class="connection-explainer"><strong>This copy is running without a backend.</strong><p>GitHub Pages cannot handle secure sign-in. Deploy the included backend, then open its HTTPS service address.</p></div><form id="backend-location-form"><label class="field-label">Your deployed backend URL<input name="backendUrl" class="form-input" type="url" required placeholder="Paste your HTTPS service URL"/></label><button class="button primary full">Open secure connection ${icon("arrow-up-right", 15)}</button></form><p class="form-notice">Use the service URL shown by your hosting provider—not your GitHub Pages URL. Never paste a token or app secret here.</p>`;
+    if (!data.authenticated)
+      return `<div class="connection-explainer"><strong>Private owner access</strong><p>Use the Bloom owner password from your hosting dashboard’s ADMIN_PASSWORD setting. This is not your Instagram or Facebook password.</p></div><form id="owner-login-form"><label class="field-label">Bloom owner password<input class="form-input" name="password" type="password" autocomplete="current-password" required maxlength="256"/></label><button class="button primary full">Unlock connection settings ${icon("arrow-right", 15)}</button></form><p class="form-notice">${data.configured ? "Backend is configured. After unlocking, you can continue to Meta’s official login." : "Backend setup is incomplete. Unlock to see the missing settings."}</p>`;
+    const callback = `<div class="callback-box"><label class="field-label" for="callback-url">Paste this exact Redirect URL into Meta</label><div><input class="form-input" id="callback-url" readonly value="${escape(data.callbackUrl)}"/><button class="button secondary" data-action="copy-callback">Copy</button></div><p>Under API setup with Unified login → Redirect URL, paste this address and tap Save.</p></div>`;
+    if (!data.configured)
+      return `${callback}<div class="connection-explainer"><strong>Finish the private hosting settings</strong><ul>${data.missing.map((name) => `<li>${escape(name)}</li>`).join("")}</ul><p>Add these in the hosting dashboard’s Environment section, then restart or redeploy the service. Do not enter secrets in the website or chat.</p></div><button class="button secondary full" data-action="owner-logout">Lock owner settings</button>`;
+    const status = data.connected
+      ? `<div class="connection-card"><span class="purple-icon">${icon("instagram", 20)}</span><div><strong>@${escape(data.account.username)}</strong><small>${escape(data.account.name || "Instagram professional account")}</small></div><span class="status">Connected</span></div><p class="modal-copy">Sign-in is connected. Analytics are still sample data and schedules stay local; automatic publishing is not enabled by this backend.</p><div class="connection-actions"><button class="button secondary" data-action="instagram-verify">Verify access</button><button class="button secondary danger" data-action="instagram-disconnect">Disconnect</button></div>`
+      : `<p class="modal-copy">${data.reconnectRequired ? "Your saved access has expired. Please reconnect through Meta." : "Save the Redirect URL in Meta first, then continue with your Creator account."}</p>`;
+    return `${callback}${status}<div id="instagram-account-options"></div><button class="button primary full" data-action="instagram-start">${icon("instagram", 17)}${data.connected ? "Reconnect through Meta" : "Continue with Meta"}</button><button class="text-link owner-lock" data-action="owner-logout">Lock owner settings</button><p class="form-notice">Only approve access to accounts you own or manage. The configuration may request messaging or advertising permissions; review Meta’s consent screen before continuing.</p>`;
+  }
+  async function refreshConnection() {
+    try {
+      backendConnection =
+        location.protocol === "file:"
+          ? null
+          : await backendRequest("/api/connection");
+    } catch {
+      backendConnection = null;
+    }
+    if (state.modal !== "account") return;
+    $("#connection-panel").innerHTML = connectionPanel(backendConnection);
+    if (backendConnection?.pending) {
+      try {
+        const data = await backendRequest("/api/instagram/accounts");
+        if (state.modal !== "account" || !$("#instagram-account-options"))
+          return;
+        $("#instagram-account-options").innerHTML =
+          `<div class="connection-explainer"><strong>Choose the account to connect</strong><p>Meta has authorized the following accounts. Confirm one below.</p>${data.accounts.map((account) => `<button class="button secondary account-option" data-account-id="${escape(account.id)}">@${escape(account.username)} ${icon("arrow-right", 14)}</button>`).join("")}</div>`;
+      } catch (error) {
+        notify(
+          connectionErrors[error.message] ||
+            "Start Meta login again to choose an account.",
+        );
+      }
+    }
+  }
+  let connectionBusy = false;
+  async function connectionAction(path, body = {}) {
+    if (connectionBusy) return;
+    connectionBusy = true;
+    try {
+      const result = await backendRequest(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      await refreshConnection();
+      if (path.endsWith("/connect"))
+        notify(
+          "Instagram connected. Publishing and live reports are not enabled yet.",
+        );
+      if (path.endsWith("/disconnect"))
+        notify(
+          result.revoked
+            ? "Instagram disconnected and access revoked."
+            : "Local token deleted. Also remove the app in Meta’s connected-app settings to revoke remote access.",
+        );
+    } catch (error) {
+      notify(
+        connectionErrors[error.message] ||
+          "The backend could not complete that request. Please try again.",
+      );
+    } finally {
+      connectionBusy = false;
+    }
+  }
+  async function verifyConnection() {
+    try {
+      await backendRequest("/api/instagram/verify");
+      await refreshConnection();
+      notify("Meta confirmed access to your selected Instagram account.");
+    } catch (error) {
+      notify(
+        connectionErrors[error.message] ||
+          "Unable to verify access. Try reconnecting through Meta.",
+      );
+    }
+  }
+
   // Centralized event delegation keeps all generated views dependency-free.
   document.addEventListener("click", (event) => {
     const target = event.target.closest("button, [data-modal]");
     if (!target) return;
+    if (target.dataset.action === "instagram-start") {
+      location.assign(new URL("/auth/instagram/start", location.href));
+      return;
+    }
+    if (target.dataset.action === "owner-logout") {
+      connectionAction("/api/logout");
+      return;
+    }
+    if (target.dataset.action === "instagram-disconnect") {
+      connectionAction("/api/instagram/disconnect");
+      return;
+    }
+    if (target.dataset.action === "instagram-verify") {
+      verifyConnection();
+      return;
+    }
+    if (target.dataset.action === "copy-callback") {
+      const input = $("#callback-url");
+      input.focus();
+      input.select();
+      if (navigator.clipboard)
+        navigator.clipboard.writeText(input.value).then(
+          () => notify("Callback URL copied"),
+          () => notify("Select and copy the highlighted URL"),
+        );
+      return;
+    }
+    if (target.dataset.accountId) {
+      connectionAction("/api/instagram/connect", {
+        accountId: target.dataset.accountId,
+      });
+      return;
+    }
     if (target.dataset.page) {
       if (state.modal) closeModal();
       navigate(target.dataset.page);
@@ -726,6 +877,33 @@
     }
   });
   document.addEventListener("submit", (event) => {
+    if (event.target.id === "owner-login-form") {
+      event.preventDefault();
+      const password = event.target.elements.password.value;
+      event.target.reset();
+      connectionAction("/api/session", { password });
+      return;
+    }
+    if (event.target.id === "backend-location-form") {
+      event.preventDefault();
+      try {
+        const url = new URL(event.target.elements.backendUrl.value);
+        const local = ["localhost", "127.0.0.1"].includes(url.hostname);
+        if (
+          (url.protocol !== "https:" && !(local && url.protocol === "http:")) ||
+          url.username ||
+          url.password
+        )
+          throw new Error();
+        url.pathname = "/";
+        url.search = "?connect=1";
+        url.hash = "overview";
+        location.assign(url.href);
+      } catch {
+        notify("Enter the HTTPS service URL from your hosting dashboard.");
+      }
+      return;
+    }
     if (event.target.id === "post-form") {
       event.preventDefault();
       commitPost("Scheduled");
@@ -813,4 +991,24 @@
     ? location.hash.slice(1)
     : "overview";
   render();
+  const connectionOutcome = new URLSearchParams(location.search).get(
+    "connection",
+  );
+  const openConnection = new URLSearchParams(location.search).has("connect");
+  if (connectionOutcome || openConnection) {
+    history.replaceState(null, "", location.pathname + location.hash);
+    openModal("account");
+    const outcomes = {
+      denied:
+        "Meta sign-in was cancelled. Your existing connection was not changed.",
+      no_accounts:
+        "No Instagram accounts were assigned. Check your portfolio, app roles, and Meta configuration.",
+      failed:
+        "Meta sign-in could not finish. Check the app ID, secret, configuration ID, and saved Redirect URL.",
+      expired: "Meta access was rejected. Start sign-in again.",
+      choose:
+        "Sign-in succeeded. Choose your Instagram account to finish connecting.",
+    };
+    if (outcomes[connectionOutcome]) notify(outcomes[connectionOutcome]);
+  }
 })();
