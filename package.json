@@ -11,7 +11,8 @@
     "test:standalone": "npm run build && node tests/standalone.cjs",
     "start": "node --env-file-if-exists=.env server/index.js",
     "test:backend": "npm run build && node --test tests/backend.test.js tests/deployment.test.js",
-    "test:connection-ui": "node tests/connection-ui.cjs"
+    "test:connection-ui": "node tests/connection-ui.cjs",
+    "test:legal-ui": "npm run build && node tests/legal-ui.cjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",

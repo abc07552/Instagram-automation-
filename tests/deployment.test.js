@@ -84,3 +84,29 @@ test("storage labels fail closed on typos", () => {
     /Invalid STORAGE_MODE/,
   );
 });
+
+test("static build includes the exact reviewed public legal pages and styles", async () => {
+  for (const file of ["privacy.html", "data-deletion.html", "legal.css"]) {
+    const source = await readFile(
+      new URL(`../${file}`, import.meta.url),
+      "utf8",
+    );
+    const built = await readFile(
+      new URL(`../dist/${file}`, import.meta.url),
+      "utf8",
+    );
+    assert.equal(built, source, file);
+  }
+  const privacy = await readFile(
+    new URL("../privacy.html", import.meta.url),
+    "utf8",
+  );
+  assert.match(privacy, /href="\.\/data-deletion\.html"/);
+  assert.match(privacy, /abc075528@gmail\.com/);
+  const deletion = await readFile(
+    new URL("../data-deletion.html", import.meta.url),
+    "utf8",
+  );
+  assert.match(deletion, /not an automatic deletion\s+callback/);
+  assert.match(deletion, /href="\.\/privacy\.html"/);
+});

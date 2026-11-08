@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="How to disconnect Instagram and request deletion of Bloom Assistant data."
+    />
+    <title>Data Deletion · Bloom Assistant</title>
+    <link rel="stylesheet" href="./legal.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#deletion">Skip to data-deletion instructions</a>
+    <header class="legal-header">
+      <a class="legal-brand" href="./index.html" aria-label="Bloom home"
+        >✿ <span>bloom<span class="brand-dot">.</span></span></a
+      ><a class="back-link" href="./index.html"
+        >Back to workspace <span aria-hidden="true">↗</span></a
+      >
+    </header>
+    <main id="deletion" class="legal-main">
+      <div class="eyebrow">YOUR ACCOUNT. YOUR CHOICE.</div>
+      <h1>Data-deletion instructions</h1>
+      <p class="legal-intro">
+        How to remove a saved connection, clear local content, and contact the
+        project about your data.
+      </p>
+      <p class="legal-date">
+        Last updated: <time datetime="2026-11-08">8 November 2026</time>
+      </p>
+      <aside class="legal-notice">
+        <strong
+          >This is an instructions page, not an automatic deletion
+          callback.</strong
+        >
+        Visiting it does not delete anything. Email requests are handled
+        manually after any necessary ownership verification.
+      </aside>
+      <section>
+        <h2>1. Disconnect Instagram from Bloom</h2>
+        <ol>
+          <li>
+            Open the deployed backend’s copy of Bloom and open the account menu.
+          </li>
+          <li>
+            Unlock the connection settings using the private
+            <strong>Bloom owner password</strong>, not your Instagram password.
+          </li>
+          <li>
+            Select <strong>Disconnect</strong> for the saved Instagram account.
+          </li>
+        </ol>
+        <p>
+          Disconnect removes the saved connection record, including its
+          encrypted token, selected profile details, and connection timestamps,
+          from Bloom’s live database. It also clears pending account-selection
+          data. The backend attempts to revoke access through Meta.
+        </p>
+        <p>
+          If Meta revocation fails, Bloom still deletes its local credential and
+          tells you to revoke the integration through Meta. Clearing local
+          storage or losing a token on a free-hosting restart does not revoke
+          Meta’s authorization.
+        </p>
+      </section>
+      <section>
+        <h2>2. Revoke the integration through Meta</h2>
+        <p>
+          In the Meta account used to authorize Bloom, find the connected apps
+          or business integrations settings and remove the relevant Bloom app.
+          Menu names vary by account and login method; follow Meta’s displayed
+          removal instructions.
+        </p>
+        <p>
+          You can do this even if Bloom is unavailable or its free-testing
+          server has lost the saved connection. Revocation controls future
+          access; it does not automatically clear browser-local drafts,
+          downloaded files, or all existing server records.
+        </p>
+      </section>
+      <section>
+        <h2>3. Remove browser-local content</h2>
+        <p>
+          Delete drafts/posts from the planner and unsave ideas in the
+          interface. To clear all locally saved content, use your browser’s
+          site-data controls for the Bloom site you used. This may include draft
+          titles, captions, image previews, dates, content types, draft status,
+          and saved idea titles.
+        </p>
+        <p>
+          If you used both GitHub Pages and the backend-hosted site, each origin
+          has separate local storage. Clear the relevant site data for both.
+          Close the workspace tab to discard assistant messages held in page
+          memory. Delete any downloaded reports from your own device separately.
+        </p>
+        <p>
+          Clearing browser data alone does not remove the server connection.
+          Logging out deletes the current owner session but does not disconnect
+          Instagram.
+        </p>
+      </section>
+      <section>
+        <h2>4. Request help with access or deletion</h2>
+        <p>
+          Email
+          <a
+            href="mailto:abc075528@gmail.com?subject=Bloom%20data%20deletion%20request"
+            >abc075528@gmail.com</a
+          >
+          with the subject <strong>Bloom data deletion request</strong>.
+        </p>
+        <p>Include:</p>
+        <ul>
+          <li>The Instagram username associated with the request.</li>
+          <li>The Bloom website address you used.</li>
+          <li>
+            What you want removed, such as a saved connection or information in
+            a support email.
+          </li>
+        </ul>
+        <p>
+          Only provide information needed to identify the request.
+          <strong
+            >Do not send passwords, app secrets, access tokens, login codes, or
+            payment information.</strong
+          >
+          We may need to verify that you own or are authorized to manage the
+          account. An email request does not trigger immediate automatic
+          deletion.
+        </p>
+        <p>
+          Requests will be reviewed and handled subject to applicable law and
+          any legitimate retention requirements. We cannot remotely clear
+          another browser’s local storage, erase files downloaded to your
+          device, or delete records controlled independently by Meta, hosting,
+          or email providers. Data retained in provider-managed systems or any
+          separately maintained backups may require separate handling.
+        </p>
+      </section>
+      <section>
+        <h2>5. Free testing and retention</h2>
+        <p>
+          The free testing backend uses temporary storage. Account connections
+          and sessions can disappear after sleep, restart, or deployment; do not
+          rely on it for durable records or as proof of remote revocation.
+          Environment settings, provider records, and browser data are separate
+          from that temporary database.
+        </p>
+        <p>
+          For security, retention, service providers, and the information
+          currently handled by the app, read the
+          <a href="./privacy.html">privacy policy</a>. These pages do not
+          certify Meta App Review approval or enable automatic posting.
+        </p>
+      </section>
+      <div class="legal-action">
+        <h2>Need help?</h2>
+        <p>
+          Contact the project using the email below. No account password is
+          needed in your message.
+        </p>
+        <a
+          class="contact-button"
+          href="mailto:abc075528@gmail.com?subject=Bloom%20data%20deletion%20request"
+          >Email abc075528@gmail.com <span aria-hidden="true">↗</span></a
+        >
+      </div>
+    </main>
+    <footer class="legal-footer">
+      <span>Bloom Assistant · Personal testing workspace</span>
+      <nav aria-label="Legal links">
+        <a href="./privacy.html">Privacy policy</a
+        ><a href="./data-deletion.html" aria-current="page">Data deletion</a
+        ><a href="./index.html">Workspace</a>
+      </nav>
+    </footer>
+  </body>
+</html>

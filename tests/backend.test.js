@@ -386,3 +386,27 @@ test("free-testing mode is visible before and after login without exposing crede
   assert.deepEqual(data.capabilities, { publishing: false, insights: false });
   assert.equal(JSON.stringify(data).includes(token), false);
 });
+
+test("privacy and deletion instructions are public without exposing account credentials", async (t) => {
+  const f = await fixture(t);
+  for (const [path, title] of [
+    ["/privacy.html", "Privacy policy"],
+    ["/data-deletion.html", "Data-deletion instructions"],
+  ]) {
+    const response = await f.request(path);
+    assert.equal(response.status, 200, path);
+    assert.match(response.headers.get("content-type"), /text\/html/);
+    assert.equal(response.headers.get("set-cookie"), null);
+    const body = await response.text();
+    assert.match(body, new RegExp(title));
+    assert.match(body, /mailto:abc075528@gmail\.com/);
+    assert.match(body, /href="\.\/legal\.css"/);
+    assert.equal(body.includes(token), false);
+    assert.equal(body.includes(secret), false);
+    assert.equal(body.includes(owner), false);
+    assert.doesNotMatch(body, /<script[\s>]/i);
+  }
+  const response = await f.request("/legal.css");
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type"), /text\/css/);
+});

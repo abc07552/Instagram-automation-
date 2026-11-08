@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Privacy policy for Bloom Assistant’s Instagram connection testing workspace."
+    />
+    <title>Privacy Policy · Bloom Assistant</title>
+    <link rel="stylesheet" href="./legal.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#policy">Skip to privacy policy</a>
+    <header class="legal-header">
+      <a class="legal-brand" href="./index.html" aria-label="Bloom home"
+        >✿ <span>bloom<span class="brand-dot">.</span></span></a
+      >
+      <a class="back-link" href="./index.html"
+        >Back to workspace <span aria-hidden="true">↗</span></a
+      >
+    </header>
+    <main id="policy" class="legal-main">
+      <div class="eyebrow">YOUR DATA. A LITTLE MORE CLARITY.</div>
+      <h1>Privacy policy</h1>
+      <p class="legal-intro">
+        How Bloom Assistant handles information in its personal Instagram
+        connection testing workspace.
+      </p>
+      <p class="legal-date">
+        Last updated: <time datetime="2026-11-08">8 November 2026</time>
+      </p>
+      <aside class="legal-notice">
+        <strong>This is a testing service.</strong> Connecting an account does
+        not enable automatic posting or live analytics. The current dashboard
+        and reports use sample data, and assistant replies are local
+        templates—not a connected AI model.
+      </aside>
+
+      <nav class="legal-toc" aria-label="On this page">
+        <a href="#information">Information handled</a
+        ><a href="#use">Use and sharing</a
+        ><a href="#retention">Storage and retention</a
+        ><a href="#choices">Your choices</a><a href="#contact">Contact</a>
+      </nav>
+      <section id="about">
+        <h2>1. About Bloom Assistant</h2>
+        <p>
+          Bloom Assistant is a personal testing project for planning Instagram
+          content and trying an official Meta account-connection flow. Its
+          current backend is designed for one workspace owner, not a public
+          multi-user service. The contact for this project and its privacy
+          requests is
+          <a href="mailto:abc075528@gmail.com">abc075528@gmail.com</a>.
+        </p>
+        <p>
+          This policy covers Bloom’s frontend and backend. Meta, the hosting
+          provider, and the email provider handle information under their own
+          policies when you use their services.
+        </p>
+      </section>
+      <section id="information">
+        <h2>2. Information handled</h2>
+        <ul>
+          <li>
+            <strong>Instagram account connection:</strong> with your
+            authorization, the backend receives a Meta access token and reads
+            the IDs, usernames, and names of Instagram accounts assigned to that
+            credential. During account selection, it temporarily stores that
+            list. Once you confirm an account, it stores the selected profile,
+            encrypted access token, connection time, and token-expiration time
+            if supplied by Meta.
+          </li>
+          <li>
+            <strong>Owner login and security:</strong> the backend processes the
+            private Bloom owner password to verify access. The configured
+            password is managed in the hosting environment. The backend stores
+            hashed session identifiers, session-expiration times, and temporary
+            OAuth security state. A necessary session cookie is stored in the
+            browser.
+          </li>
+          <li>
+            <strong>Content you plan:</strong> titles, captions, formats,
+            planned dates, draft/schedule status, uploaded image previews, and
+            saved idea titles are stored in your browser’s local storage. The
+            current planner does not upload those drafts or images to the
+            backend or Meta. Assistant messages and topic-generated ideas are
+            kept in the current page’s memory; explicitly saved idea titles are
+            stored locally.
+          </li>
+          <li>
+            <strong>Technical and support information:</strong> the backend uses
+            request IP information for in-memory rate limiting. The hosting
+            provider may process IP addresses, request metadata, and logs to
+            operate and secure the service. If you email the contact address,
+            the message and information you include are processed to handle your
+            request.
+          </li>
+        </ul>
+        <p>
+          Bloom does not ask for or store your Instagram or Facebook password.
+          Enter those passwords only on the official Meta sign-in pages. Do not
+          send us passwords, app secrets, access tokens, or login codes.
+        </p>
+      </section>
+      <section id="use">
+        <h2>3. How information is used</h2>
+        <p>
+          Connection data is used to complete your requested Meta login, let you
+          select an assigned account, save and verify that connection, and
+          attempt to revoke access when you disconnect. Security information is
+          used to restrict access to the workspace owner, prevent forged or
+          replayed login callbacks, and limit abusive requests. Browser-local
+          content is used to display your planner and saved ideas.
+        </p>
+        <p>
+          The current backend does not fetch your activity insights, messages,
+          comments, or advertising records, and does not publish content. A Meta
+          configuration template may request broader permissions than these
+          features use. Review Meta’s consent screen and do not approve access
+          you do not want. Granting a permission does not mean Bloom currently
+          implements the corresponding feature.
+        </p>
+        <p>
+          No connected AI provider receives your prompts or account data in this
+          version. Reports downloaded from the interface contain sample metrics
+          and local schedule text, not access tokens or uploaded image previews.
+        </p>
+      </section>
+      <section id="sharing">
+        <h2>4. Sharing and service providers</h2>
+        <p>
+          Bloom does not sell personal information or use account data for
+          targeted advertising. The current application does not include
+          third-party advertising or analytics scripts.
+        </p>
+        <ul>
+          <li>
+            <strong>Meta:</strong> receives requests needed for authorization,
+            assigned-account discovery, connection verification, and revocation.
+            Meta controls its own sign-in and permissions screens.
+          </li>
+          <li>
+            <strong>Hosting:</strong> the deployed backend uses Render to run
+            the service and hold its server-side data and private environment
+            settings. The separate GitHub Pages demo is a static website hosted
+            by GitHub; its drafts are local to that browser origin.
+          </li>
+          <li>
+            <strong>Email:</strong> privacy and support requests sent to the
+            published Gmail address are processed by the email provider and the
+            project contact.
+          </li>
+        </ul>
+        <p>
+          Providers may process information in locations outside your country
+          under their own terms and policies. Information may also be disclosed
+          where required by applicable law.
+        </p>
+      </section>
+      <section id="retention">
+        <h2>5. Storage, security, and retention</h2>
+        <p>
+          Access tokens and pending account-selection data are encrypted on the
+          backend using AES-256-GCM, with the encryption key held separately in
+          the hosting environment. Tokens are not returned to the browser.
+          Production owner-session cookies are HttpOnly, Secure, and
+          SameSite=Lax. These protections reduce risk but do not guarantee
+          absolute security.
+        </p>
+        <ul>
+          <li>
+            <strong>Owner sessions:</strong> stop being valid after eight hours
+            or on logout. Expired session records are cleaned when a new owner
+            session is created.
+          </li>
+          <li>
+            <strong>OAuth and pending account selection:</strong> are valid for
+            ten minutes. Expiry blocks use; it does not necessarily immediately
+            erase the encrypted record. Starting a new login, completing
+            selection, logging out, disconnecting, or session cleanup removes or
+            replaces the relevant stored information.
+          </li>
+          <li>
+            <strong>Saved connection:</strong> remains until disconnected,
+            replaced, deleted in response to a verified request, or lost with
+            the server’s storage. Token expiration blocks use but does not
+            automatically erase the saved record.
+          </li>
+          <li>
+            <strong>Free testing storage:</strong> is temporary. Server sessions
+            and connections may be lost after sleep, restart, or deployment.
+            Environment settings are managed separately by the host. Losing a
+            token locally does not revoke Meta’s authorization.
+          </li>
+          <li>
+            <strong>Optional persistent hosting:</strong> can retain server
+            records across restarts. If an operator creates backups, those
+            copies require separate retention and deletion handling; deletion
+            from the live database does not promise instant erasure from storage
+            remnants or provider-managed systems.
+          </li>
+          <li>
+            <strong>Browser drafts and saved ideas:</strong> remain until
+            removed in the app or through your browser’s site-data controls.
+            Data is origin-specific, so the GitHub Pages demo and the
+            backend-hosted workspace have separate browser storage.
+          </li>
+          <li>
+            <strong>Support email and infrastructure logs:</strong> may be
+            retained to handle requests, security needs, or legal obligations,
+            subject to the operator’s and providers’ retention practices.
+          </li>
+        </ul>
+      </section>
+      <section id="choices">
+        <h2>6. Your choices and deletion requests</h2>
+        <p>
+          You can choose not to connect Instagram, decline Meta permissions,
+          lock the owner session, disconnect the selected account, or remove the
+          integration in Meta’s account settings. Disconnect attempts remote
+          revocation and deletes the saved local credential even if Meta is
+          unavailable; if revocation fails, remove the integration through Meta
+          as well. Logging out alone does not disconnect the account.
+        </p>
+        <p>
+          For browser-local data, remove drafts or saved ideas in the interface
+          or clear site data in your browser. The backend cannot remotely clear
+          another browser’s local storage or downloaded reports.
+        </p>
+        <p>
+          See the
+          <a href="./data-deletion.html">data-deletion instructions</a> for the
+          full process. You may request access, correction, or deletion of
+          information handled by the project by contacting
+          <a href="mailto:abc075528@gmail.com">abc075528@gmail.com</a>. Include
+          only the information needed to identify your account and request. We
+          may need to verify that you own or are authorized to manage the
+          account, without asking for passwords or access tokens. Requests will
+          be handled subject to applicable law and any legitimate retention
+          requirements; deletion is not instant or automatic on receipt of an
+          email.
+        </p>
+      </section>
+      <section id="changes">
+        <h2>7. Changes to this policy</h2>
+        <p>
+          If the service’s data handling changes, this page should be updated
+          before those changes are introduced. The last-updated date identifies
+          this version. This policy does not mean Meta has reviewed or approved
+          the app.
+        </p>
+      </section>
+      <section id="contact">
+        <h2>8. Privacy contact</h2>
+        <p>
+          For questions or requests about Bloom Assistant’s data handling, email
+          <a href="mailto:abc075528@gmail.com">abc075528@gmail.com</a>.
+        </p>
+        <p class="legal-contact-note">
+          Never include account passwords, app secrets, access tokens,
+          payment-card details, or login codes.
+        </p>
+      </section>
+    </main>
+    <footer class="legal-footer">
+      <span>Bloom Assistant · Personal testing workspace</span>
+      <nav aria-label="Legal links">
+        <a href="./privacy.html" aria-current="page">Privacy policy</a
+        ><a href="./data-deletion.html">Data deletion</a
+        ><a href="./index.html">Workspace</a>
+      </nav>
+    </footer>
+  </body>
+</html>

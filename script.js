@@ -461,7 +461,7 @@
     const feature = (name) =>
       `<span class="modal-feature-icon">${icon(name, 28)}</span>`;
     if (type === "account")
-      return `${feature("instagram")}${title("Connect your Instagram")}<p class="modal-copy">Sign in securely through Meta. Your Instagram password and access token never belong in this website’s forms.</p><div id="connection-panel"><p class="connection-loading" role="status">Checking backend…</p></div>`;
+      return `${feature("instagram")}${title("Connect your Instagram")}<p class="modal-copy">Sign in securely through Meta. Your Instagram password and access token never belong in this website’s forms.</p><div id="connection-panel"><p class="connection-loading" role="status">Checking backend…</p></div><p class="connection-policy-links"><a href="./privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="./data-deletion.html" target="_blank" rel="noopener">Data-deletion instructions</a></p>`;
     if (type === "settings")
       return `${feature("settings")}${title("Your workspace, your way")}<p class="modal-copy">Your drafts, schedules, and saved ideas stay in this browser.</p><div class="setting-row"><span>Workspace</span><strong>Alex’s workspace</strong></div><div class="setting-row"><span>Time zone</span><strong>${escape(Intl.DateTimeFormat().resolvedOptions().timeZone)}</strong></div><div class="setting-row"><span>Publishing</span><span class="status draft">Not connected</span></div><button class="button secondary full" data-modal="account">Manage Instagram connection ${icon("arrow-up-right", 15)}</button>`;
     if (type === "upgrade")

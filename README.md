@@ -8,6 +8,12 @@ See **[the step-by-step backend deployment guide](docs/BACKEND_SETUP.md)**. The 
 
 The backend serves its own copy of Bloom, supports owner login and account selection, and stores credentials encrypted on the server (ephemeral storage by default). The optional `render.persistent.yaml` is a separate, explicitly paid deployment with a persistent disk. Automatic publishing, live insights, and model-powered AI are **not enabled** by this connection milestone.
 
+## Privacy and deletion pages
+
+Public, no-login pages are included at `privacy.html` and `data-deletion.html`, styled by `legal.css`. They use **abc075528@gmail.com** as the operator-supplied privacy contact and describe the current single-owner testing implementation. The static build includes all three files; the Node server serves them without authentication. No tracking scripts or external assets are used on the pages.
+
+After deploying this revision, open and review the live pages before submitting their URLs to Meta. The deletion page is **manual instructions**, not a signed-request callback. These pages do not grant Meta approval, satisfy every publishing/review requirement by themselves, or prove the cause of an “App not active” error. See [deployment and Meta field instructions](docs/PRIVACY_SETUP.md).
+
 ## Main files
 
 - `index.html` — accessible page structure, navigation, and dialog containers
