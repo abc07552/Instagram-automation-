@@ -4,9 +4,9 @@ A responsive, dependency-free web interface built with **HTML, CSS, and vanilla 
 
 ## Connect your Instagram account
 
-See **[the step-by-step backend deployment guide](docs/BACKEND_SETUP.md)**. The included `render.yaml` prepares a paid, persistent Render deployment; review hosting costs before approving. Enter Meta secrets only in your hosting dashboard. Nothing is deployed or connected just by saving this code.
+See **[the step-by-step backend deployment guide](docs/BACKEND_SETUP.md)**. The default `render.yaml` requests a **Free testing service with no disk**. Connections and owner sessions can be lost after sleep/restart/redeploy; it is not suitable for dependable automatic posting. See [the free testing steps](docs/FREE_TESTING.md). Some hosting accounts may still require card verification; stop if you do not want to provide it. Enter Meta secrets only in your hosting dashboard. Nothing is deployed or connected just by saving this code.
 
-The backend serves its own copy of Bloom, supports owner login and account selection, and stores credentials encrypted on a private disk. Automatic publishing, live insights, and model-powered AI are **not enabled** by this connection milestone.
+The backend serves its own copy of Bloom, supports owner login and account selection, and stores credentials encrypted on the server (ephemeral storage by default). The optional `render.persistent.yaml` is a separate, explicitly paid deployment with a persistent disk. Automatic publishing, live insights, and model-powered AI are **not enabled** by this connection milestone.
 
 ## Main files
 
@@ -15,7 +15,9 @@ The backend serves its own copy of Bloom, supports owner login and account selec
 - `script.js` — planner, content templates, SVG charts, reports, and browser storage
 - `public/` — local sample images, fonts, and font licenses
 - `server/` — owner sessions, Unified Login callback, account selection, encrypted credential storage
-- `render.yaml` and `.env.example` — hosting blueprint and private configuration reference
+- `render.yaml` — default free-testing blueprint, no disk or paid datastore
+- `render.persistent.yaml` — optional paid persistent deployment; not selected by default
+- `.env.example` — private configuration reference
 
 ## Open the interface
 

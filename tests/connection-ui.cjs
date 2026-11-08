@@ -11,6 +11,7 @@ const assert = require("node:assert/strict");
     META_APP_ID: "1234",
     META_APP_SECRET: "test-only-secret",
     META_LOGIN_CONFIG_ID: "4321",
+    STORAGE_MODE: "ephemeral",
     ADMIN_PASSWORD: password,
     TOKEN_ENCRYPTION_KEY: "test-only-random-encryption-value-not-a-live-key",
   });
@@ -48,6 +49,9 @@ const assert = require("node:assert/strict");
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(base + "/?connect=1");
+    await page
+      .getByText("Free testing mode — temporary storage", { exact: true })
+      .waitFor();
     await page.getByLabel("Bloom owner password").fill("wrong");
     await page
       .getByRole("button", { name: "Unlock connection settings" })
@@ -58,6 +62,9 @@ const assert = require("node:assert/strict");
       .getByRole("button", { name: "Unlock connection settings" })
       .click();
     await page.getByLabel("Paste this exact Redirect URL into Meta").waitFor();
+    await page
+      .getByText("Free testing mode — temporary storage", { exact: true })
+      .waitFor();
     assert.equal(
       await page.locator("#callback-url").inputValue(),
       config.callbackUrl,

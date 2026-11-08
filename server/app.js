@@ -35,7 +35,10 @@ export function readConfig(env = process.env) {
     encryptionKey: env.TOKEN_ENCRYPTION_KEY || "",
     apiVersion: env.META_API_VERSION || "v26.0",
     dbPath: env.DATABASE_PATH || "./data/bloom.sqlite",
+    storageMode: env.STORAGE_MODE || "local",
   };
+  if (!["local", "ephemeral", "persistent"].includes(config.storageMode))
+    throw new Error("Invalid STORAGE_MODE");
   if (!/^v\d+\.\d+$/.test(config.apiVersion))
     throw new Error("Invalid META_API_VERSION");
   config.missing = [];
@@ -137,12 +140,17 @@ export function createApp({
     Promise.resolve(fn(req, res)).catch(next);
 
   app.get("/healthz", (req, res) =>
-    res.json({ ok: true, configured: config.ready }),
+    res.json({
+      ok: true,
+      configured: config.ready,
+      storageMode: config.storageMode,
+    }),
   );
   app.get("/api/connection", (req, res) => {
     if (!req.session)
       return res.json({
         backend: true,
+        storageMode: config.storageMode,
         configured: config.ready,
         authenticated: false,
         connected: false,
@@ -152,6 +160,7 @@ export function createApp({
     res.json({
       backend: true,
       configured: config.ready,
+      storageMode: config.storageMode,
       authenticated: true,
       connected: Boolean(connection && !expired),
       reconnectRequired: Boolean(expired),

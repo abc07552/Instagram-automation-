@@ -142,6 +142,7 @@ test("owner gate, CSRF/origin protection, cookie settings, and session expiry", 
   const publicResponse = await f.request("/api/connection");
   assert.deepEqual(await publicResponse.json(), {
     backend: true,
+    storageMode: "local",
     configured: true,
     authenticated: false,
     connected: false,
@@ -364,4 +365,24 @@ test("static hosting serves the built interface but not server, env, database, o
   ]) {
     assert.equal((await f.request(path)).status, 404, path);
   }
+});
+
+test("free-testing mode is visible before and after login without exposing credentials", async (t) => {
+  const f = await fixture(t, { env: { STORAGE_MODE: "ephemeral" } });
+  assert.equal(
+    (await (await f.request("/healthz")).json()).storageMode,
+    "ephemeral",
+  );
+  assert.equal(
+    (await (await f.request("/api/connection")).json()).storageMode,
+    "ephemeral",
+  );
+  await f.authorize();
+  await f.post("/api/instagram/connect", { accountId: account.id });
+  const response = await f.request("/api/connection");
+  const data = await response.json();
+  assert.equal(data.storageMode, "ephemeral");
+  assert.equal(data.connected, true);
+  assert.deepEqual(data.capabilities, { publishing: false, insights: false });
+  assert.equal(JSON.stringify(data).includes(token), false);
 });

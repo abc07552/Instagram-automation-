@@ -1,26 +1,25 @@
-# This provisions a PAID web service and persistent disk only when you approve deployment.
+# FREE TESTING ONLY: no paid instance, disk, database, or background worker.
+# Sessions and encrypted connections may be lost on sleep, restart, or redeploy.
 # All credentials are set privately in Render, never in Git or the frontend.
 services:
   - type: web
     name: bloom-instagram-backend
     runtime: node
     branch: arena/d3fb70ad-instagram-automation
-    plan: starter
+    plan: free
     buildCommand: npm ci --omit=dev && npm run build
     startCommand: npm start
     healthCheckPath: /healthz
     autoDeployTrigger: "off"
-    disk:
-      name: bloom-private-data
-      mountPath: /var/data/bloom
-      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: 22.22.0
       - key: NODE_ENV
         value: production
+      - key: STORAGE_MODE
+        value: ephemeral
       - key: DATABASE_PATH
-        value: /var/data/bloom/bloom.sqlite
+        value: /tmp/bloom/bloom.sqlite
       - key: META_API_VERSION
         value: v26.0
       - key: META_APP_ID
