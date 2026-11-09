@@ -22,7 +22,7 @@ const path = require("node:path");
       });
       await page.goto(pathToFileURL(path.resolve(file)).href);
       await page
-        .getByRole("heading", { name: /A little inspiration/ })
+        .getByRole("heading", { name: /Your creative command center/ })
         .waitFor();
       await page.evaluate(() => document.fonts.ready);
       assert(

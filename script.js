@@ -160,8 +160,8 @@
   const pages = {
     overview: {
       name: "Overview",
-      title: "A little inspiration. A lot of growth.",
-      subtitle: "Welcome back, Alex. Let’s make something worth sharing.",
+      title: "Your creative command center.",
+      subtitle: "A clear plan. A little inspiration. More room to create.",
     },
     planner: {
       name: "Content planner",
@@ -335,9 +335,35 @@
     return `<button class="icon-button ${saved ? "saved" : ""}" data-save-idea="${escape(idea.title)}" aria-label="Save idea" aria-pressed="${saved}">${icon("bookmark", 17, saved ? 'style="fill:currentColor"' : "")}</button>`;
   }
   function overview() {
-    return `<section class="insight-banner"><div class="banner-icon">${icon("sparkles", 24)}</div><div><div class="banner-title">Your next big idea is already here <span>AI INSIGHT</span></div><p>Your reels are getting 2.4× more reach. Let’s turn that momentum into your next great post.</p></div><button data-ask="Suggest reel ideas based on my performance">Find my next idea ${icon("arrow-right", 16)}</button><span class="banner-decoration" aria-hidden="true">✧</span></section>
-      ${sectionHeading(`Your account at a glance ${sampleLabel()}`, `<span class="compare-label">vs. previous period</span>${periodSelect()}`)}${stats()}
-      <div class="middle-grid">${chart()}<section class="card assistant-card"><div class="assistant-label"><span class="purple-icon">${icon("sparkles", 18)}</span><h2>A little guidance, just for you</h2></div><p class="card-subtitle">Small shifts. Meaningful growth.</p><div class="advice-item"><span class="advice-icon mint">${icon("clock", 17)}</span><div><strong>Your audience is an evening crowd</strong><p>Try posting between <b>6 PM – 8 PM</b><br/>for a little extra love.</p></div></div><div class="advice-item"><span class="advice-icon peach">${icon("play", 17)}</span><div><strong>More reels, more discovery</strong><p>Reels brought in <b>68% of your reach.</b><br/>Keep those little stories coming.</p></div></div><div class="assistant-foot"><span><span class="tiny-dot"></span>Made for your momentum</span><button data-ask="Give me a deep performance analysis">Ask AI ${icon("arrow-up-right", 14)}</button></div></section></div>
+    return `<div class="dashboard-intro">
+      <section class="studio-hero" aria-label="Creative studio">
+        <div class="hero-copy"><span class="hero-kicker">A LITTLE FOCUS. A LOT OF POSSIBILITY.</span>
+          <h2>Good things<br/>are <em>growing.</em></h2>
+          <p>Turn your everyday inspiration into a feed that feels like you. Your next chapter starts with one idea.</p>
+          <button class="button hero-button" data-page="planner">Plan something great ${icon("arrow-up-right", 17)}</button>
+          <span class="hero-footnote">${icon("check-check", 14)} Your drafts. Your pace. Your creative space.</span>
+        </div>
+        <div class="hero-art" aria-hidden="true"><div class="hero-orbit"></div><span class="hero-star">✳</span>
+          <div class="hero-photo back"><img src="${photo("coast")}" alt=""/><span>A little escape ↗</span></div>
+          <div class="hero-photo front"><img src="${photo("cafe")}" alt=""/><span>Small moments. Big ideas.</span></div>
+          <div class="hero-note">${icon("sparkles", 16)} Made for your next big idea</div>
+        </div>
+      </section>
+      <section class="card studio-pulse" aria-labelledby="studio-pulse-title">
+        <div class="pulse-heading"><span class="pulse-icon">${icon("zap", 19)}</span><span class="mini-label">YOUR WORKSPACE</span></div>
+        <h2 id="studio-pulse-title">A little more in flow.</h2><p class="pulse-subtitle">From first spark to ready-to-share.</p>
+        <div class="pulse-row"><span>Content in your planner</span><strong>${state.posts.length.toString().padStart(2, "0")}</strong></div>
+        <div class="pulse-row"><span>Drafts to come back to</span><strong>${state.posts
+          .filter((p) => p.status === "Draft")
+          .length.toString()
+          .padStart(2, "0")}</strong></div>
+        <div class="pulse-row"><span>Ideas you’ve saved</span><strong>${state.savedIdeas.length.toString().padStart(2, "0")}</strong></div>
+        <button class="pulse-link" data-page="assistant">Find your next spark ${icon("arrow-right", 16)}</button>
+      </section>
+    </div>
+    <div id="dashboard-connection">${dashboardConnection()}</div>
+      ${sectionHeading(`Performance overview ${sampleLabel()}`, `<span class="compare-label">vs. previous period</span>${periodSelect()}`)}${stats()}
+      <div class="middle-grid">${chart()}<section class="card assistant-card"><div class="assistant-label"><span class="purple-icon">${icon("sparkles", 18)}</span><h2>A little guidance, just for you</h2></div><p class="card-subtitle">Small shifts. Meaningful growth.</p><div class="advice-item"><span class="advice-icon mint">${icon("clock", 17)}</span><div><strong>Sample insight: an evening crowd</strong><p>Try posting between <b>6 PM – 8 PM</b><br/>for a little extra love.</p></div></div><div class="advice-item"><span class="advice-icon peach">${icon("play", 17)}</span><div><strong>Sample insight: more reels, more discovery</strong><p>In this demo, reels bring <b>68% of reach.</b><br/>Keep those little stories coming.</p></div></div><div class="assistant-foot"><span><span class="tiny-dot"></span>Illustrative insights · not live</span><button data-ask="Give me a deep performance analysis">Ask AI ${icon("arrow-up-right", 14)}</button></div></section></div>
       <div class="bottom-grid"><section class="card upcoming"><div class="card-heading"><div><h2>Good things on the way <span class="count">${state.posts.length}</span></h2><p class="card-subtitle">Your content, right on time.</p></div><button class="text-link" data-page="planner">View planner ${icon("arrow-right", 14)}</button></div><div class="upcoming-posts">${state.posts.slice(0, 3).map(postPreview).join("") || '<p class="card-subtitle">A little space for your next idea. Create your first post.</p>'}</div><div class="local-note">${icon("check-check", 13)}Your creativity. A little more organized.<span>Local schedule · auto-publishing not connected</span></div></section>
       <section class="card idea-card"><div class="card-heading"><div><h2>A spark for your next post ${icon("sparkles", 15, 'class="purple-text"')}</h2><p class="card-subtitle">Fresh ideas, made to feel like you.</p></div><button class="icon-button" data-page="assistant" aria-label="More ideas">${icon("arrow-up-right")}</button></div>${baseIdeas
         .slice(0, 2)
@@ -375,7 +401,7 @@
         ? state.messages
             .map(
               (m) =>
-                `<div class="message ${m.role}"><span class="message-avatar">${m.role === "assistant" ? icon("flower", 18) : "AM"}</span><div><strong>${m.role === "assistant" ? "Bloom assistant" : "You"}</strong><p>${escape(m.text)}</p></div></div>`,
+                `<div class="message ${m.role}"><span class="message-avatar">${m.role === "assistant" ? icon("flower", 18) : "CR"}</span><div><strong>${m.role === "assistant" ? "Bloom assistant" : "You"}</strong><p>${escape(m.text)}</p></div></div>`,
             )
             .join("")
         : welcome) +
@@ -430,7 +456,7 @@
     const body = { overview, planner, assistant, analytics, library }[
       state.page
     ]();
-    content.innerHTML = `<section class="page-heading"><div><div class="eyebrow">YOUR CREATIVE GROWTH PARTNER</div><h1>${page.title}${state.page === "overview" ? ' <span class="greeting-spark" aria-hidden="true">✧</span>' : ""}</h1><p>${page.subtitle}</p></div><button class="button primary" data-action="new-post" aria-label="Create content">${icon("plus", 17)}<span>Create content</span></button></section>${body}`;
+    content.innerHTML = `<section class="page-heading"><div><div class="eyebrow">YOUR SPACE TO GROW</div><h1>${page.title}${state.page === "overview" ? ' <span class="greeting-spark" aria-hidden="true">✧</span>' : ""}</h1><p>${page.subtitle}</p></div><button class="button primary" data-action="new-post" aria-label="Create content">${icon("plus", 17)}<span>Create content</span></button></section>${body}`;
   }
   function navigate(page) {
     if (!pages[page]) return;
@@ -461,9 +487,9 @@
     const feature = (name) =>
       `<span class="modal-feature-icon">${icon(name, 28)}</span>`;
     if (type === "account")
-      return `${feature("instagram")}${title("Connect your Instagram")}<p class="modal-copy">Sign in securely through Meta. Your Instagram password and access token never belong in this website’s forms.</p><div id="connection-panel"><p class="connection-loading" role="status">Checking backend…</p></div><p class="connection-policy-links"><a href="./privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="./data-deletion.html" target="_blank" rel="noopener">Data-deletion instructions</a></p>`;
+      return `${feature("instagram")}${title("Connect your Instagram")}<p class="modal-copy">Sign in securely through Meta. Your Instagram password and access token never belong in this website’s forms.</p><div id="connection-panel"><p class="connection-loading" role="status">Checking backend…</p></div>${connectionHelp()}<p class="connection-policy-links"><a href="./privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="./data-deletion.html" target="_blank" rel="noopener">Data-deletion instructions</a></p>`;
     if (type === "settings")
-      return `${feature("settings")}${title("Your workspace, your way")}<p class="modal-copy">Your drafts, schedules, and saved ideas stay in this browser.</p><div class="setting-row"><span>Workspace</span><strong>Alex’s workspace</strong></div><div class="setting-row"><span>Time zone</span><strong>${escape(Intl.DateTimeFormat().resolvedOptions().timeZone)}</strong></div><div class="setting-row"><span>Publishing</span><span class="status draft">Not connected</span></div><button class="button secondary full" data-modal="account">Manage Instagram connection ${icon("arrow-up-right", 15)}</button>`;
+      return `${feature("settings")}${title("Your workspace, your way")}<p class="modal-copy">Your drafts, schedules, and saved ideas stay in this browser.</p><div class="setting-row"><span>Workspace</span><strong>Creator workspace</strong></div><div class="setting-row"><span>Time zone</span><strong>${escape(Intl.DateTimeFormat().resolvedOptions().timeZone)}</strong></div><div class="setting-row"><span>Publishing</span><span class="status draft">Not enabled</span></div><button class="button secondary full" data-modal="account">Manage Instagram connection ${icon("arrow-up-right", 15)}</button>`;
     if (type === "upgrade")
       return `${feature("flower")}${title("A little more Bloom.")}<p class="modal-copy">This preview gives you room to plan, find inspiration, and explore reports. Paid subscriptions aren’t enabled, and no payment is needed.</p><div class="pro-features">${["Local drafts and schedules", "Content ideas and caption templates", "Downloadable demo activity reports"].map((text) => `<p>${icon("check", 17)}${text}</p>`).join("")}</div><button class="button primary full" data-page="assistant">Find your next spark ${icon("sparkles", 16)}</button>`;
     return `${feature("help")}${title("A little help getting started")}<div class="help-steps"><div><b>01</b><p><strong>Make room for your ideas</strong>Create a reel, post, or story. Upload an image and save a draft.</p></div><div><b>02</b><p><strong>Find your creative rhythm</strong>Use the assistant for content prompts and caption templates.</p></div><div><b>03</b><p><strong>Learn, then grow</strong>Explore sample analytics and export a deeper report. Live analytics and publishing require a separate Meta integration.</p></div></div><button class="button primary full" data-action="new-post">Create your first post ${icon("plus", 16)}</button>`;
@@ -632,7 +658,7 @@
   }
   function downloadReport() {
     const report = {
-      workspace: "Alex Morgan · Demo account",
+      workspace: "Creator workspace · Sample analytics",
       period: state.period,
       generatedAt: new Date().toISOString(),
       dataSource:
@@ -704,11 +730,72 @@
     if (!response.ok) throw new Error(body.error || "backend_unavailable");
     return body;
   }
+  let connectionChecked = false;
+  function dashboardConnection() {
+    const data = backendConnection;
+    let title = "Your Instagram, one step closer.";
+    let detail =
+      "Connect securely to Meta. Planning works now; publishing and live insights are not enabled.";
+    let badge = "Not connected";
+    if (!connectionChecked) {
+      badge = "Checking service";
+      detail =
+        "Checking the connection service. Your local drafts are always available.";
+    } else if (!data?.backend) {
+      badge =
+        location.protocol === "file:"
+          ? "Local workspace"
+          : "Service unavailable";
+      detail =
+        location.protocol === "file:"
+          ? "Plan and save drafts here. Open your hosted Bloom backend for secure Instagram sign-in."
+          : "The connection service did not respond. A Free host may be waking up. Your local drafts are still available.";
+    } else if (!data.authenticated) {
+      badge = "Owner locked";
+      detail =
+        "Unlock owner settings to check your saved connection or start secure Meta sign-in.";
+    } else if (data.connected) {
+      title = `@${data.account?.username || "creator"} is connected.`;
+      badge = "Instagram connected";
+      detail =
+        "Authorization saved. Analytics remain samples and schedules remain browser-local; publishing is not enabled.";
+    } else if (!data.configured) {
+      badge = "Setup needed";
+      detail =
+        "Your backend is reachable. Complete the private hosting settings to enable secure sign-in.";
+    } else if (data.reconnectRequired) {
+      badge = "Reconnect needed";
+      detail =
+        "Saved Meta access has expired. Reconnect from your secure owner settings.";
+    } else if (data.pending) {
+      badge = "Choose an account";
+      detail =
+        "Meta returned available accounts. Choose one in connection settings to finish.";
+    } else {
+      badge = "Ready for sign-in";
+    }
+    return `<section class="channel-strip" aria-label="Instagram connection status"><span class="channel-logo">${icon("instagram", 23)}</span><div class="channel-copy"><div><strong>${escape(title)}</strong><span class="connection-badge ${data?.connected ? "is-connected" : ""}">${escape(badge)}</span></div><p>${escape(detail)}</p></div><button class="button secondary" data-modal="account">${data?.connected ? "Manage connection" : "Connect Instagram"} ${icon("arrow-up-right", 15)}</button></section>`;
+  }
+  function updateConnectionSummary() {
+    const panel = $("#dashboard-connection");
+    if (panel) panel.innerHTML = dashboardConnection();
+  }
+  function connectionHelp() {
+    return `<details class="connection-help"><summary>Having trouble with Meta login?</summary><div>
+      <h3>“App not active”</h3><p>Check that you use the Facebook profile listed as an app administrator. Compare your Meta dashboard’s Login URL with the app and configuration IDs in your unlocked connection settings. Bloom cannot activate or publish a Meta app.</p>
+      <h3>No Instagram accounts available</h3><p>The selected business portfolio must offer your professional account to this login. In Business Settings → Accounts → Instagram accounts, check the portfolio and your Facebook profile’s asset access. Do not remove or transfer an existing account just to retry.</p>
+      <h3>“Invalid code for Instagram OpenID Connect”</h3><p>If this appears while adding an account inside Meta Business Settings, that step is handled by Meta—not Bloom. Don’t refresh or reuse that callback URL. If a fresh browser attempt also fails, report it through Meta Business Suite Help &amp; support.</p>
+      <p class="form-notice">Never share an authorization-code URL, token, password, or app secret. Start successful sign-in from Bloom so its security state can be verified.</p>
+      <a href="https://business.facebook.com/settings/" target="_blank" rel="noopener noreferrer">Open Meta Business Settings ↗</a>
+    </div></details>`;
+  }
   function connectionPanel(data) {
     const testingNotice =
       data?.storageMode === "ephemeral"
         ? `<div class="connection-explainer testing-notice" role="note"><strong>Free testing mode — temporary storage</strong><p>This service may sleep. Owner sessions and your saved Instagram connection may be lost after sleep, restart, or redeployment. Sign in and reconnect if that happens. This is not an always-on posting service.</p></div>`
         : "";
+    if (!data?.backend && location.protocol !== "file:")
+      return `<div class="connection-explainer"><strong>Connection service unavailable</strong><p>The backend may be waking up or this copy may be hosted without one. Wait a moment, then retry. Your drafts are unaffected.</p></div><button class="button secondary full" data-action="connection-retry">Check service again</button><form id="backend-location-form"><label class="field-label">Open your deployed Bloom service<input name="backendUrl" class="form-input" type="url" required placeholder="Your HTTPS backend URL"/></label><button class="button primary full">Open secure connection ${icon("arrow-up-right", 15)}</button></form>`;
     if (!data?.backend)
       return `<div class="connection-explainer"><strong>This copy is running without a backend.</strong><p>GitHub Pages cannot handle secure sign-in. Deploy the included backend, then open its HTTPS service address.</p></div><form id="backend-location-form"><label class="field-label">Your deployed backend URL<input name="backendUrl" class="form-input" type="url" required placeholder="Paste your HTTPS service URL"/></label><button class="button primary full">Open secure connection ${icon("arrow-up-right", 15)}</button></form><p class="form-notice">Use the service URL shown by your hosting provider—not your GitHub Pages URL. Never paste a token or app secret here.</p>`;
     if (!data.authenticated)
@@ -719,7 +806,7 @@
     const status = data.connected
       ? `<div class="connection-card"><span class="purple-icon">${icon("instagram", 20)}</span><div><strong>@${escape(data.account.username)}</strong><small>${escape(data.account.name || "Instagram professional account")}</small></div><span class="status">Connected</span></div><p class="modal-copy">Sign-in is connected. Analytics are still sample data and schedules stay local; automatic publishing is not enabled by this backend.</p><div class="connection-actions"><button class="button secondary" data-action="instagram-verify">Verify access</button><button class="button secondary danger" data-action="instagram-disconnect">Disconnect</button></div>`
       : `<p class="modal-copy">${data.reconnectRequired ? "Your saved access has expired. Please reconnect through Meta." : "Save the Redirect URL in Meta first, then continue with your Creator account."}</p>`;
-    return `${testingNotice}${callback}${status}<div id="instagram-account-options"></div><button class="button primary full" data-action="instagram-start">${icon("instagram", 17)}${data.connected ? "Reconnect through Meta" : "Continue with Meta"}</button><button class="text-link owner-lock" data-action="owner-logout">Lock owner settings</button><p class="form-notice">Only approve access to accounts you own or manage. The configuration may request messaging or advertising permissions; review Meta’s consent screen before continuing.</p>`;
+    return `${testingNotice}${callback}${status}<div class="login-identifiers"><span>App ID <code>${escape(data.login?.appId || "Not available")}</code></span><span>Configuration ID <code>${escape(data.login?.configId || "Not available")}</code></span></div><div id="instagram-account-options"></div><button class="button primary full" data-action="instagram-start">${icon("instagram", 17)}${data.connected ? "Reconnect through Meta" : "Continue with Meta"}</button><button class="text-link owner-lock" data-action="owner-logout">Lock owner settings</button><p class="form-notice">Only approve access to accounts you own or manage. The configuration may request messaging or advertising permissions; review Meta’s consent screen before continuing.</p>`;
   }
   async function refreshConnection() {
     try {
@@ -730,6 +817,8 @@
     } catch {
       backendConnection = null;
     }
+    connectionChecked = true;
+    updateConnectionSummary();
     if (state.modal !== "account") return;
     $("#connection-panel").innerHTML = connectionPanel(backendConnection);
     if (backendConnection?.pending) {
@@ -794,6 +883,12 @@
   document.addEventListener("click", (event) => {
     const target = event.target.closest("button, [data-modal]");
     if (!target) return;
+    if (target.dataset.action === "connection-retry") {
+      target.disabled = true;
+      target.textContent = "Checking service…";
+      refreshConnection();
+      return;
+    }
     if (target.dataset.action === "instagram-start") {
       location.assign(new URL("/auth/instagram/start", location.href));
       return;
@@ -995,6 +1090,12 @@
     ? location.hash.slice(1)
     : "overview";
   render();
+  if (location.protocol === "file:") {
+    connectionChecked = true;
+    updateConnectionSummary();
+  } else {
+    refreshConnection();
+  }
   const connectionOutcome = new URLSearchParams(location.search).get(
     "connection",
   );

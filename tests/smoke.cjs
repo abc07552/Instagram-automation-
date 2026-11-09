@@ -24,7 +24,9 @@ const assert = require("node:assert/strict");
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("http://localhost:5173");
-  await page.getByRole("heading", { name: /A little inspiration/ }).waitFor();
+  await page
+    .getByRole("heading", { name: /Your creative command center/ })
+    .waitFor();
   await page.screenshot({ path: "/tmp/bloom-desktop.png", fullPage: true });
   await page
     .getByRole("button", { name: "Create content", exact: true })

@@ -167,6 +167,7 @@ export function createApp({
       account: connection ? connection.account : null,
       connectedAt: connection?.connectedAt || null,
       expiresAt: connection?.expiresAt || null,
+      login: { appId: config.appId, configId: config.configId },
       callbackUrl: config.callbackUrl,
       missing: config.missing,
       pending: Boolean(

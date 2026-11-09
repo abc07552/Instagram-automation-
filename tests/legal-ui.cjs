@@ -84,7 +84,7 @@ const path = require("node:path");
           .getByRole("link", { name: "Workspace", exact: true })
           .click();
         await page
-          .getByRole("heading", { name: /A little inspiration/ })
+          .getByRole("heading", { name: /Your creative command center/ })
           .waitFor();
         await page
           .locator(".workspace-legal-links")

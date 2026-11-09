@@ -2,6 +2,23 @@
 
 A responsive, dependency-free web interface built with **HTML, CSS, and vanilla JavaScript**. The static demo needs no React, CDN scripts, or API keys. An optional Node.js backend now supports secure Instagram Unified Login.
 
+## Bloom Studio dashboard
+
+A forest-green navigation rail, editorial studio hero, local planner/idea counts,
+responsive content cards, and clearly labelled sample performance charts. A
+connection strip reads the same-origin backend and distinguishes locked settings,
+incomplete setup, pending account selection, saved authorization, expired access,
+and an unavailable service. No account name or token is fabricated. The planner,
+media uploads, caption templates, reports, and local storage continue to work.
+
+The Unified Login entry point now matches Meta’s dashboard-style
+`https://www.facebook.com/dialog/oauth` endpoint without forced `prompt` or
+`display` parameters. It retains configuration ID, code response, exact callback,
+and single-use security state. Graph API calls remain versioned. This is a
+compatibility change, **not proof that Meta’s “App not active” error is resolved**.
+Meta’s account-adding “Invalid code for Instagram OpenID Connect” occurs outside
+Bloom and still requires Meta-side resolution. See [the rollout notes](docs/STUDIO_UPDATE.md).
+
 ## Connect your Instagram account
 
 See **[the step-by-step backend deployment guide](docs/BACKEND_SETUP.md)**. The default `render.yaml` requests a **Free testing service with no disk**. Connections and owner sessions can be lost after sleep/restart/redeploy; it is not suitable for dependable automatic posting. See [the free testing steps](docs/FREE_TESTING.md). Some hosting accounts may still require card verification; stop if you do not want to provide it. Enter Meta secrets only in your hosting dashboard. Nothing is deployed or connected just by saving this code.

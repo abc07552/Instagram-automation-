@@ -203,10 +203,16 @@ test("Unified Login URL matches selected configuration without secrets or duplic
   assert.equal(url.searchParams.get("client_id"), "1234");
   assert.equal(url.searchParams.get("response_type"), "code");
   assert.equal(url.searchParams.get("redirect_uri"), f.config.callbackUrl);
-  assert.equal(url.searchParams.get("prompt"), "login");
+  assert.equal(url.pathname, "/dialog/oauth");
+  assert.equal(url.searchParams.has("prompt"), false);
+  assert.equal(url.searchParams.has("display"), false);
+  assert.equal(url.searchParams.get("override_default_response_type"), "true");
   assert.equal(url.searchParams.has("scope"), false);
   assert.equal(url.href.includes(secret), false);
   assert.equal(url.searchParams.get("state").length, 64);
+  const status = await (await f.request("/api/connection")).json();
+  assert.deepEqual(status.login, { appId: "1234", configId: "9876" });
+  assert.equal(JSON.stringify(status).includes(secret), false);
 });
 
 test("OAuth rejects foreign, missing, expired, and replayed state before any provider calls", async (t) => {

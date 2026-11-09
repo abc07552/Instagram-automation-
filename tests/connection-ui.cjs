@@ -80,6 +80,9 @@ const assert = require("node:assert/strict");
       assert.equal(response.status(), 302);
       const login = new URL(response.headers().location);
       assert.equal(login.origin, "https://www.facebook.com");
+      assert.equal(login.pathname, "/dialog/oauth");
+      assert.equal(login.searchParams.has("prompt"), false);
+      assert.equal(login.searchParams.get("config_id"), "4321");
       state = login.searchParams.get("state");
       return route.fulfill({
         contentType: "text/html",
@@ -112,8 +115,10 @@ const assert = require("node:assert/strict");
     await page.getByRole("button", { name: "Disconnect", exact: true }).click();
     await page.getByRole("button", { name: "Continue with Meta" }).waitFor();
     assert.equal(store.connection(), null);
+    await page.getByText("Ready for sign-in", { exact: true }).waitFor();
     await page.getByRole("button", { name: "Lock owner settings" }).click();
     await page.getByLabel("Bloom owner password").waitFor();
+    await page.getByText("Owner locked", { exact: true }).waitFor();
     assert(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,

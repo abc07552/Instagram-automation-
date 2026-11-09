@@ -93,17 +93,14 @@ export function createMeta(config, fetcher = fetch, now = Date.now) {
     return [...found.values()];
   }
   function authorize(state) {
-    const url = new URL(
-      `https://www.facebook.com/${config.apiVersion}/dialog/oauth`,
-    );
+    // Match the Unified Login dashboard entry point. Graph calls remain versioned.
+    const url = new URL("https://www.facebook.com/dialog/oauth");
     url.search = new URLSearchParams({
       client_id: config.appId,
       config_id: config.configId,
       redirect_uri: config.callbackUrl,
       response_type: "code",
       override_default_response_type: "true",
-      prompt: "login",
-      display: "page",
       state,
     });
     // Permissions come from the selected Unified Login configuration, not a second scope list.
