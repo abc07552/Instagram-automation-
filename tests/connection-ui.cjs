@@ -43,7 +43,7 @@ const assert = require("node:assert/strict");
     headless: true,
   });
   try {
-    const page = await browser.newPage({
+    let page = await browser.newPage({
       viewport: { width: 390, height: 844 },
     });
     const errors = [];
@@ -59,9 +59,31 @@ const assert = require("node:assert/strict");
     await page.getByRole("status").filter({ hasText: "incorrect" }).waitFor();
     await page.getByLabel("Bloom owner password").fill(password);
     await page
+      .getByRole("checkbox", { name: /Remember this device for 30 days/ })
+      .check();
+    await page
       .getByRole("button", { name: "Unlock connection settings" })
       .click();
     await page.getByLabel("Paste this exact Redirect URL into Meta").waitFor();
+    const ownerCookie = (await page.context().cookies()).find(
+      (cookie) => cookie.name === "bloom_session",
+    );
+    assert(ownerCookie.httpOnly);
+    assert(ownerCookie.expires * 1000 > Date.now() + 29 * 24 * 60 * 60 * 1000);
+    const rememberedBrowser = await page.context().storageState();
+    await page.close();
+    const reopened = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      storageState: rememberedBrowser,
+    });
+    page = await reopened.newPage();
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto(base);
+    await page
+      .getByRole("button", { name: "Connect Instagram", exact: true })
+      .click();
+    await page.getByLabel("Paste this exact Redirect URL into Meta").waitFor();
+    assert.equal(await page.getByLabel("Bloom owner password").count(), 0);
     await page
       .getByText("Free testing mode — temporary storage", { exact: true })
       .waitFor();

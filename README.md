@@ -25,6 +25,15 @@ See **[the step-by-step backend deployment guide](docs/BACKEND_SETUP.md)**. The 
 
 The backend serves its own copy of Bloom, supports owner login and account selection, and stores credentials encrypted on the server (ephemeral storage by default). The optional `render.persistent.yaml` is a separate, explicitly paid deployment with a persistent disk. Automatic publishing, live insights, and model-powered AI are **not enabled** by this connection milestone.
 
+## Stay signed in and durable storage
+
+Choose **Remember this device for 30 days** when unlocking owner settings on a
+trusted private device. Otherwise sessions expire after eight hours. This keeps
+passwords out of the browser and preserves owner protection. **It cannot survive
+loss of Free Render’s temporary server database.** A durable external database or
+an approved paid disk is required for that; neither is provisioned automatically.
+See [storage and sign-in options](docs/STORAGE_AND_SIGN_IN.md).
+
 ## Privacy and deletion pages
 
 Public, no-login pages are included at `privacy.html` and `data-deletion.html`, styled by `legal.css`. They use **abc075528@gmail.com** as the operator-supplied privacy contact and describe the current single-owner testing implementation. The static build includes all three files; the Node server serves them without authentication. No tracking scripts or external assets are used on the pages.

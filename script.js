@@ -792,15 +792,18 @@
   function connectionPanel(data) {
     const testingNotice =
       data?.storageMode === "ephemeral"
-        ? `<div class="connection-explainer testing-notice" role="note"><strong>Free testing mode — temporary storage</strong><p>This service may sleep. Owner sessions and your saved Instagram connection may be lost after sleep, restart, or redeployment. Sign in and reconnect if that happens. This is not an always-on posting service.</p></div>`
+        ? `<div class="connection-explainer testing-notice" role="note"><strong>Free testing mode — temporary storage</strong><p>This service may sleep. Owner sessions and your saved Instagram connection may be lost after sleep, restart, or redeployment. Remember-device sign-in cannot survive loss of this server data. Durable storage requires an external database or a persistent hosting disk. This is not an always-on posting service.</p></div>`
         : "";
     if (!data?.backend && location.protocol !== "file:")
       return `<div class="connection-explainer"><strong>Connection service unavailable</strong><p>The backend may be waking up or this copy may be hosted without one. Wait a moment, then retry. Your drafts are unaffected.</p></div><button class="button secondary full" data-action="connection-retry">Check service again</button><form id="backend-location-form"><label class="field-label">Open your deployed Bloom service<input name="backendUrl" class="form-input" type="url" required placeholder="Your HTTPS backend URL"/></label><button class="button primary full">Open secure connection ${icon("arrow-up-right", 15)}</button></form>`;
     if (!data?.backend)
       return `<div class="connection-explainer"><strong>This copy is running without a backend.</strong><p>GitHub Pages cannot handle secure sign-in. Deploy the included backend, then open its HTTPS service address.</p></div><form id="backend-location-form"><label class="field-label">Your deployed backend URL<input name="backendUrl" class="form-input" type="url" required placeholder="Paste your HTTPS service URL"/></label><button class="button primary full">Open secure connection ${icon("arrow-up-right", 15)}</button></form><p class="form-notice">Use the service URL shown by your hosting provider—not your GitHub Pages URL. Never paste a token or app secret here.</p>`;
     if (!data.authenticated)
-      return `${testingNotice}<div class="connection-explainer"><strong>Private owner access</strong><p>Use the Bloom owner password from your hosting dashboard’s ADMIN_PASSWORD setting. This is not your Instagram or Facebook password.</p></div><form id="owner-login-form"><label class="field-label">Bloom owner password<input class="form-input" name="password" type="password" autocomplete="current-password" required maxlength="256"/></label><button class="button primary full">Unlock connection settings ${icon("arrow-right", 15)}</button></form><p class="form-notice">${data.configured ? "Backend is configured. After unlocking, you can continue to Meta’s official login." : "Backend setup is incomplete. Unlock to see the missing settings."}</p>`;
-    const callback = `<div class="callback-box"><label class="field-label" for="callback-url">Paste this exact Redirect URL into Meta</label><div><input class="form-input" id="callback-url" readonly value="${escape(data.callbackUrl)}"/><button class="button secondary" data-action="copy-callback">Copy</button></div><p>Under API setup with Unified login → Redirect URL, paste this address and tap Save.</p></div>`;
+      return `${testingNotice}<div class="connection-explainer"><strong>Private owner access</strong><p>Use the Bloom owner password from your hosting dashboard’s ADMIN_PASSWORD setting. This is not your Instagram or Facebook password.</p></div><form id="owner-login-form"><label class="field-label">Bloom owner password<input class="form-input" name="password" type="password" autocomplete="current-password" required maxlength="256"/></label><label class="remember-device"><input type="checkbox" name="rememberDevice"/><span><strong>Remember this device for 30 days</strong><small>Only on a device you trust. Temporary hosting storage can still reset your sign-in.</small></span></label><button class="button primary full">Unlock connection settings ${icon("arrow-right", 15)}</button></form><p class="form-notice">${data.configured ? "Backend is configured. After unlocking, you can continue to Meta’s official login." : "Backend setup is incomplete. Unlock to see the missing settings."}</p>`;
+    const sessionNote = data.sessionExpiresAt
+      ? `<p class="session-note">This device stays unlocked until ${escape(new Date(data.sessionExpiresAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }))}, unless you lock it, clear cookies, or the server loses its stored session.</p>`
+      : "";
+    const callback = `${sessionNote}<div class="callback-box"><label class="field-label" for="callback-url">Paste this exact Redirect URL into Meta</label><div><input class="form-input" id="callback-url" readonly value="${escape(data.callbackUrl)}"/><button class="button secondary" data-action="copy-callback">Copy</button></div><p>Under API setup with Unified login → Redirect URL, paste this address and tap Save.</p></div>`;
     if (!data.configured)
       return `${testingNotice}${callback}<div class="connection-explainer"><strong>Finish the private hosting settings</strong><ul>${data.missing.map((name) => `<li>${escape(name)}</li>`).join("")}</ul><p>Add these in the hosting dashboard’s Environment section, then restart or redeploy the service. Do not enter secrets in the website or chat.</p></div><button class="button secondary full" data-action="owner-logout">Lock owner settings</button>`;
     const status = data.connected
@@ -979,8 +982,9 @@
     if (event.target.id === "owner-login-form") {
       event.preventDefault();
       const password = event.target.elements.password.value;
+      const rememberDevice = event.target.elements.rememberDevice.checked;
       event.target.reset();
-      connectionAction("/api/session", { password });
+      connectionAction("/api/session", { password, rememberDevice });
       return;
     }
     if (event.target.id === "backend-location-form") {

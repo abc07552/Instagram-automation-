@@ -67,3 +67,11 @@ Loss of the local token does **not** revoke Meta's authorization. To revoke the 
 Free services can sleep and have resource limits, so this is a connection test—not an always-on scheduler. Do not add keep-alive traffic to bypass host restrictions.
 
 Provider references: https://render.com/docs/free, https://render.com/docs/your-first-deploy, and https://community.render.com/t/free-web-service-issue/18026. Availability, verification, and limits are controlled by the provider.
+
+## Remembering your device is separate from durable storage
+
+The owner form offers **Remember this device for 30 days** for a trusted browser.
+The default remains eight hours without that opt-in. Both still require a valid
+server session record; a restart/deployment that loses temporary storage can
+require sign-in again. Do not relabel this Free service as persistent without
+adding actual durable storage. See [storage choices](STORAGE_AND_SIGN_IN.md).

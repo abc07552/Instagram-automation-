@@ -4,7 +4,7 @@ import { rateLimit } from "express-rate-limit";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-import { Store, hash } from "./store.js";
+import { Store, hash, SESSION_TTL, REMEMBERED_SESSION_TTL } from "./store.js";
 import { createMeta, ProviderError } from "./meta.js";
 
 export function readConfig(env = process.env) {
@@ -112,7 +112,7 @@ export function createApp({
     secure: config.production,
     sameSite: "lax",
     path: "/",
-    maxAge: 8 * 60 * 60 * 1000,
+    maxAge: SESSION_TTL,
   };
   const rawSession = (req) => {
     const cookies = (req.headers.cookie || "")
@@ -162,6 +162,7 @@ export function createApp({
       configured: config.ready,
       storageMode: config.storageMode,
       authenticated: true,
+      sessionExpiresAt: req.session.expires,
       connected: Boolean(connection && !expired),
       reconnectRequired: Boolean(expired),
       account: connection ? connection.account : null,
@@ -197,8 +198,13 @@ export function createApp({
       return res.status(401).json({ error: "incorrect_owner_password" });
     store.deleteSession(rawSession(req));
     const session = randomBytes(32).toString("hex");
-    store.newSession(session, now());
-    res.cookie(cookieName, session, cookieOptions).json({ ok: true });
+    // Only an explicit boolean opts this browser into a longer session.
+    const rememberDevice = req.body?.rememberDevice === true;
+    const maxAge = rememberDevice ? REMEMBERED_SESSION_TTL : SESSION_TTL;
+    store.newSession(session, now(), rememberDevice);
+    res
+      .cookie(cookieName, session, { ...cookieOptions, maxAge })
+      .json({ ok: true });
   });
   app.post("/api/logout", sameOrigin, requireOwner, (req, res) => {
     store.deleteSession(rawSession(req));

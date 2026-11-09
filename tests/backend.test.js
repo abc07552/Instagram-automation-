@@ -75,8 +75,11 @@ async function fixture(t, options = {}) {
       headers: { Origin: origin, "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-  async function login() {
-    const response = await post("/api/session", { password: owner });
+  async function login(rememberDevice = false) {
+    const response = await post("/api/session", {
+      password: owner,
+      rememberDevice,
+    });
     assert.equal(response.status, 200);
     cookie = response.headers.get("set-cookie").split(";")[0];
     return response;
@@ -415,4 +418,69 @@ test("privacy and deletion instructions are public without exposing account cred
   const response = await f.request("/legal.css");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type"), /text\/css/);
+});
+
+test("remember-device uses matching fixed 30-day cookie and server expiry, while normal sessions remain 8 hours", async (t) => {
+  const f = await fixture(t);
+  const normal = await f.login();
+  assert.match(normal.headers.get("set-cookie"), /Max-Age=28800;/);
+  const response = await f.login(true);
+  assert.match(response.headers.get("set-cookie"), /Max-Age=2592000;/);
+  assert.match(response.headers.get("set-cookie"), /HttpOnly/);
+  assert.match(response.headers.get("set-cookie"), /SameSite=Lax/);
+  const expires = (await (await f.request("/api/connection")).json())
+    .sessionExpiresAt;
+  f.tick(9 * 60 * 60 * 1000);
+  const afterNineHours = await (await f.request("/api/connection")).json();
+  assert.equal(afterNineHours.authenticated, true);
+  assert.equal(afterNineHours.sessionExpiresAt, expires);
+  f.tick(30 * 24 * 60 * 60 * 1000 - 9 * 60 * 60 * 1000 + 1);
+  assert.equal(
+    (await (await f.request("/api/connection")).json()).authenticated,
+    false,
+  );
+  assert.equal((await f.request("/auth/instagram/start")).status, 401);
+});
+
+test("remember-device opt-in is strict and remembered sessions are revoked on lock", async (t) => {
+  const f = await fixture(t, {
+    env: { NODE_ENV: "production", PUBLIC_BASE_URL: "https://bloom.example" },
+  });
+  const misleading = await f.post("/api/session", {
+    password: owner,
+    rememberDevice: "true",
+  });
+  assert.match(misleading.headers.get("set-cookie"), /Max-Age=28800;/);
+  const response = await f.login(true);
+  const raw = response.headers.get("set-cookie").split(";")[0].split("=")[1];
+  assert.match(response.headers.get("set-cookie"), /^__Host-bloom_session=/);
+  assert.match(response.headers.get("set-cookie"), /; Secure/);
+  const locked = await f.post("/api/logout");
+  assert.equal(locked.status, 200);
+  assert.match(locked.headers.get("set-cookie"), /Expires=Thu, 01 Jan 1970/);
+  assert.equal(f.store.session(raw, Date.now()), undefined);
+  assert.equal((await f.request("/auth/instagram/start")).status, 401);
+});
+
+test("remembered sessions and encrypted connections survive reopening the same durable database but not replacing it", async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), "bloom-remember-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const dbPath = join(dir, "store.sqlite");
+  const raw = "test-only-session-id-never-a-password";
+  const now = Date.now();
+  let store = new Store(dbPath, env.TOKEN_ENCRYPTION_KEY);
+  store.newSession(raw, now, true);
+  store.connect({ token, account });
+  const stored = store.db.prepare("SELECT * FROM sessions").get();
+  assert.notEqual(stored.id, raw);
+  assert.equal(JSON.stringify(stored).includes(owner), false);
+  store.close();
+  store = new Store(dbPath, env.TOKEN_ENCRYPTION_KEY);
+  assert(store.session(raw, now + 24 * 60 * 60 * 1000));
+  assert.equal(store.connection().token, token);
+  store.close();
+  const replacement = new Store(":memory:", env.TOKEN_ENCRYPTION_KEY);
+  assert.equal(replacement.session(raw, now), undefined);
+  assert.equal(replacement.connection(), null);
+  replacement.close();
 });

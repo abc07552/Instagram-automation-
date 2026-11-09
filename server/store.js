@@ -10,7 +10,10 @@ import {
 
 export const hash = (value) => createHash("sha256").update(value).digest("hex");
 
-// One owner, one connection. SQLite must live on a persistent, private disk.
+export const SESSION_TTL = 8 * 60 * 60 * 1000;
+export const REMEMBERED_SESSION_TTL = 30 * 24 * 60 * 60 * 1000;
+
+// One owner, one connection. Durable storage requires a persistent, private disk.
 export class Store {
   constructor(path, secret) {
     if (path !== ":memory:")
@@ -54,11 +57,14 @@ export class Store {
       ]).toString(),
     );
   }
-  newSession(raw, now) {
+  newSession(raw, now, rememberDevice = false) {
     this.db.prepare("DELETE FROM sessions WHERE expires <= ?").run(now);
     this.db
       .prepare("INSERT INTO sessions (id, expires) VALUES (?, ?)")
-      .run(hash(raw), now + 8 * 60 * 60 * 1000);
+      .run(
+        hash(raw),
+        now + (rememberDevice === true ? REMEMBERED_SESSION_TTL : SESSION_TTL),
+      );
   }
   session(raw, now) {
     return raw

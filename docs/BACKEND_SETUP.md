@@ -74,7 +74,7 @@ A connected badge means the backend has a saved credential for the selected prof
 
 - **Disconnect** attempts to revoke Meta access and always deletes the locally saved credential. If Meta cannot revoke access, Bloom explicitly tells you to also remove the integration in Meta's connected-app settings. A saved OAuth pending selection is also cleared.
 - **Lock owner settings** signs out this browser; it does not disconnect the Instagram account.
-- Owner sessions expire after eight hours. Pending OAuth/account-selection steps expire after ten minutes.
+- Owner sessions expire after eight hours by default, or 30 days when “Remember this device” is explicitly checked. The cookie and server record share the same fixed expiry; visiting does not extend it. Locking owner settings invalidates the session. This cannot survive loss of Free Render’s temporary database. Pending OAuth/account-selection steps expire after ten minutes.
 
 ## How it works
 
