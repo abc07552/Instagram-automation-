@@ -1,5 +1,9 @@
 # Connect Bloom to your Instagram Creator account
 
+**External database option:** to keep Render compute Free while retaining encrypted
+sessions/connections across deployments, follow [EXTERNAL_DATABASE.md](EXTERNAL_DATABASE.md).
+The default instructions below describe temporary SQLite storage unless noted.
+
 ## What is ready, and what is not
 
 The repository now includes a **single-owner Node.js backend** for the Unified Login configuration shown in your Meta dashboard. It serves the Bloom website and handles owner authentication, OAuth, assigned-account discovery, explicit account selection, token storage, verification, and disconnect.

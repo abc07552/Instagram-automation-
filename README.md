@@ -32,7 +32,10 @@ trusted private device. Otherwise sessions expire after eight hours. This keeps
 passwords out of the browser and preserves owner protection. **It cannot survive
 loss of Free Render’s temporary server database.** A durable external database or
 an approved paid disk is required for that; neither is provisioned automatically.
-See [storage and sign-in options](docs/STORAGE_AND_SIGN_IN.md).
+The PostgreSQL adapter is implemented: follow [external database setup](docs/EXTERNAL_DATABASE.md)
+to keep Render compute Free and retain encrypted records across app deployments.
+A hosted database still needs to be created and configured privately. See also
+[storage and sign-in options](docs/STORAGE_AND_SIGN_IN.md).
 
 ## Privacy and deletion pages
 
@@ -48,6 +51,7 @@ After deploying this revision, open and review the live pages before submitting 
 - `public/` — local sample images, fonts, and font licenses
 - `server/` — owner sessions, Unified Login callback, account selection, encrypted credential storage
 - `render.yaml` — default free-testing blueprint, no disk or paid datastore
+- `render.external.yaml` — opt-in Free compute with a separately configured external PostgreSQL database
 - `render.persistent.yaml` — optional paid persistent deployment; not selected by default
 - `.env.example` — private configuration reference
 
@@ -77,7 +81,7 @@ npm run build
 npm run preview
 ```
 
-The build copies the standalone interface and assets into `dist/`. Deploy that directory to any static hosting service. The browser interface itself has no npm dependencies. The optional backend uses Express, Helmet, express-rate-limit, and Node’s built-in SQLite. Vite and Playwright are development tools only.
+The build copies the standalone interface and assets into `dist/`. Deploy that directory to any static hosting service. The browser interface itself has no npm dependencies. The optional backend uses Express, Helmet, express-rate-limit, and Node’s built-in SQLite or server-side `pg` for optional external PostgreSQL. Vite, Playwright, and the local PGlite test engine are development tools only.
 
 ## GitHub Pages deployment
 

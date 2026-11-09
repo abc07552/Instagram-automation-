@@ -4,7 +4,9 @@ import { rateLimit } from "express-rate-limit";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-import { Store, hash, SESSION_TTL, REMEMBERED_SESSION_TTL } from "./store.js";
+import { hash, SESSION_TTL, REMEMBERED_SESSION_TTL } from "./credentials.js";
+import { localStore } from "./storage.js";
+import { postgresOptions, StorageUnavailableError } from "./postgres-store.js";
 import { createMeta, ProviderError } from "./meta.js";
 
 export function readConfig(env = process.env) {
@@ -36,9 +38,25 @@ export function readConfig(env = process.env) {
     apiVersion: env.META_API_VERSION || "v26.0",
     dbPath: env.DATABASE_PATH || "./data/bloom.sqlite",
     storageMode: env.STORAGE_MODE || "local",
+    databaseUrl: env.DATABASE_URL || "",
   };
-  if (!["local", "ephemeral", "persistent"].includes(config.storageMode))
+  if (
+    !["local", "ephemeral", "persistent", "external"].includes(
+      config.storageMode,
+    )
+  )
     throw new Error("Invalid STORAGE_MODE");
+  if (config.storageMode === "external") {
+    postgresOptions(config.databaseUrl);
+    if (config.encryptionKey.length < 32)
+      throw new Error(
+        "External storage requires TOKEN_ENCRYPTION_KEY (at least 32 characters)",
+      );
+  } else if (config.databaseUrl) {
+    throw new Error(
+      "Set STORAGE_MODE=external to use DATABASE_URL; local fallback is disabled",
+    );
+  }
   if (!/^v\d+\.\d+$/.test(config.apiVersion))
     throw new Error("Invalid META_API_VERSION");
   config.missing = [];
@@ -62,7 +80,7 @@ export function createApp({
   config = readConfig(),
   fetcher = fetch,
   now = Date.now,
-  store = new Store(config.dbPath, config.encryptionKey),
+  store = localStore(config),
   staticDir = fileURLToPath(new URL("../dist/", import.meta.url)),
 } = {}) {
   const app = express();
@@ -122,8 +140,8 @@ export function createApp({
       .find((value) => value.startsWith(`${cookieName}=`))
       ?.slice(cookieName.length + 1);
   };
-  app.use((req, res, next) => {
-    req.session = store.session(rawSession(req), now());
+  app.use(["/api", "/auth"], async (req, res, next) => {
+    req.session = await store.session(rawSession(req), now());
     next();
   });
   function requireOwner(req, res, next) {
@@ -139,14 +157,16 @@ export function createApp({
   const asyncRoute = (fn) => (req, res, next) =>
     Promise.resolve(fn(req, res)).catch(next);
 
-  app.get("/healthz", (req, res) =>
+  app.get("/healthz", async (req, res) => {
+    await store.health();
     res.json({
       ok: true,
       configured: config.ready,
       storageMode: config.storageMode,
-    }),
-  );
-  app.get("/api/connection", (req, res) => {
+    });
+  });
+  app.get("/api/connection", async (req, res) => {
+    await store.health();
     if (!req.session)
       return res.json({
         backend: true,
@@ -155,7 +175,7 @@ export function createApp({
         authenticated: false,
         connected: false,
       });
-    const connection = store.connection();
+    const connection = await store.connection();
     const expired = connection?.expiresAt && connection.expiresAt <= now();
     res.json({
       backend: true,
@@ -184,7 +204,7 @@ export function createApp({
     legacyHeaders: false,
     message: { error: "too_many_login_attempts" },
   });
-  app.post("/api/session", sameOrigin, loginLimit, (req, res) => {
+  app.post("/api/session", sameOrigin, loginLimit, async (req, res) => {
     if (config.adminPassword.length < 16)
       return res.status(503).json({ error: "owner_password_not_configured" });
     const supplied =
@@ -196,27 +216,27 @@ export function createApp({
       )
     )
       return res.status(401).json({ error: "incorrect_owner_password" });
-    store.deleteSession(rawSession(req));
+    await store.deleteSession(rawSession(req));
     const session = randomBytes(32).toString("hex");
     // Only an explicit boolean opts this browser into a longer session.
     const rememberDevice = req.body?.rememberDevice === true;
     const maxAge = rememberDevice ? REMEMBERED_SESSION_TTL : SESSION_TTL;
-    store.newSession(session, now(), rememberDevice);
+    await store.newSession(session, now(), rememberDevice);
     res
       .cookie(cookieName, session, { ...cookieOptions, maxAge })
       .json({ ok: true });
   });
-  app.post("/api/logout", sameOrigin, requireOwner, (req, res) => {
-    store.deleteSession(rawSession(req));
+  app.post("/api/logout", sameOrigin, requireOwner, async (req, res) => {
+    await store.deleteSession(rawSession(req));
     res
       .clearCookie(cookieName, { ...cookieOptions, maxAge: undefined })
       .json({ ok: true });
   });
-  app.get("/auth/instagram/start", requireOwner, (req, res) => {
+  app.get("/auth/instagram/start", requireOwner, async (req, res) => {
     if (!config.ready)
       return res.status(503).json({ error: "backend_not_configured" });
     const state = randomBytes(32).toString("hex");
-    store.startOAuth(req.session.id, state, now());
+    await store.startOAuth(req.session.id, state, now());
     res.redirect(302, meta.authorize(state));
   });
   app.get(
@@ -241,7 +261,12 @@ export function createApp({
           );
       }
       // Consume BEFORE exchanging. A rejected, expired, or replayed callback cannot bind an account.
-      store.consumeOAuth(req.session.id);
+      if (!(await store.consumeOAuth(req.session.id, hash(state), now()))) {
+        return res
+          .status(400)
+          .type("text")
+          .send("Sign-in could not be verified. Start again from Bloom.");
+      }
       const finish = (outcome) =>
         res.redirect(303, `${config.baseUrl}/?connection=${outcome}#overview`);
       if (req.query.error) return finish("denied");
@@ -255,7 +280,7 @@ export function createApp({
         const credential = await meta.exchange(req.query.code);
         const accounts = await meta.accounts(credential.token);
         if (!accounts.length) return finish("no_accounts");
-        store.pending(req.session.id, { ...credential, accounts }, now());
+        await store.pending(req.session.id, { ...credential, accounts }, now());
         return finish("choose");
       } catch (error) {
         if (error instanceof ProviderError)
@@ -272,30 +297,35 @@ export function createApp({
     const pending = store.decrypt(req.session.pending);
     res.json({ accounts: pending.accounts });
   });
-  app.post("/api/instagram/connect", sameOrigin, requireOwner, (req, res) => {
-    if (!req.session.pending || req.session.pending_expires <= now())
-      return res.status(409).json({ error: "start_connection_again" });
-    const pending = store.decrypt(req.session.pending);
-    const account = pending.accounts.find(
-      (account) => account.id === req.body?.accountId,
-    );
-    if (!account)
-      return res.status(400).json({ error: "invalid_account_selection" });
-    store.connect({
-      token: pending.token,
-      expiresAt: pending.expiresAt,
-      account,
-      connectedAt: new Date(now()).toISOString(),
-    });
-    store.clearPending(req.session.id);
-    res.json({ connected: true, account });
-  });
+  app.post(
+    "/api/instagram/connect",
+    sameOrigin,
+    requireOwner,
+    async (req, res) => {
+      if (!req.session.pending || req.session.pending_expires <= now())
+        return res.status(409).json({ error: "start_connection_again" });
+      const pending = store.decrypt(req.session.pending);
+      const account = pending.accounts.find(
+        (account) => account.id === req.body?.accountId,
+      );
+      if (!account)
+        return res.status(400).json({ error: "invalid_account_selection" });
+      await store.connect({
+        token: pending.token,
+        expiresAt: pending.expiresAt,
+        account,
+        connectedAt: new Date(now()).toISOString(),
+      });
+      await store.clearPending(req.session.id);
+      res.json({ connected: true, account });
+    },
+  );
   app.post(
     "/api/instagram/disconnect",
     sameOrigin,
     requireOwner,
     asyncRoute(async (req, res) => {
-      const connection = store.connection();
+      const connection = await store.connection();
       let revoked = false;
       try {
         if (connection) {
@@ -305,7 +335,7 @@ export function createApp({
       } catch {
         /* Always permit deleting a locally stored credential even if Meta is unavailable. */
       }
-      store.disconnect();
+      await store.disconnect();
       res.json({ connected: false, revoked });
     }),
   );
@@ -313,7 +343,7 @@ export function createApp({
     "/api/instagram/verify",
     requireOwner,
     asyncRoute(async (req, res) => {
-      const connection = store.connection();
+      const connection = await store.connection();
       if (!connection) return res.status(409).json({ error: "not_connected" });
       const accounts = await meta.accounts(connection.token);
       const account = accounts.find(
@@ -321,7 +351,7 @@ export function createApp({
       );
       if (!account)
         return res.status(409).json({ error: "reconnect_required" });
-      store.connect({ ...connection, account });
+      await store.connect({ ...connection, account });
       res.json({ ok: true, account });
     }),
   );
@@ -338,6 +368,8 @@ export function createApp({
   app.use((req, res) => res.status(404).type("text").send("Not found"));
   app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);
+    if (error instanceof StorageUnavailableError)
+      return res.status(503).json({ error: "storage_unavailable" });
     if (error instanceof ProviderError)
       return res.status(502).json({ error: error.kind });
     if (error.type === "entity.too.large")

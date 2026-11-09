@@ -110,3 +110,28 @@ test("static build includes the exact reviewed public legal pages and styles", a
   assert.match(deletion, /not an automatic deletion\s+callback/);
   assert.match(deletion, /href="\.\/privacy\.html"/);
 });
+
+test("external database Blueprint keeps compute Free and requires a private PostgreSQL URL without a disk", async () => {
+  const {
+    services: [service],
+    databases,
+  } = await blueprint("render.external.yaml");
+  assert.equal(service.plan, "free");
+  assert.equal(service.disk, undefined);
+  assert.equal(databases, undefined);
+  assert.equal(service.branch, "arena/d3fb70ad-instagram-automation");
+  assert.equal(service.autoDeployTrigger, "off");
+  assert.equal(envOf(service).STORAGE_MODE, "external");
+  assert.equal(
+    service.envVars.find((entry) => entry.key === "DATABASE_URL").sync,
+    false,
+  );
+  assert.equal(
+    service.envVars.find((entry) => entry.key === "DATABASE_URL").value,
+    undefined,
+  );
+  assert.equal(
+    service.envVars.some((entry) => entry.key === "DATABASE_PATH"),
+    false,
+  );
+});

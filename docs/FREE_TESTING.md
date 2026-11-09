@@ -75,3 +75,11 @@ The default remains eight hours without that opt-in. Both still require a valid
 server session record; a restart/deployment that loses temporary storage can
 require sign-in again. Do not relabel this Free service as persistent without
 adding actual durable storage. See [storage choices](STORAGE_AND_SIGN_IN.md).
+
+## Durable external storage on Free compute
+
+The external PostgreSQL adapter is now implemented. A separate database and
+private Render environment settings are still required; follow
+[EXTERNAL_DATABASE.md](EXTERNAL_DATABASE.md). This replaces temporary SQLite for
+server records, not browser-local drafts, and does not promise permanent Meta
+authorization or unlimited provider retention.

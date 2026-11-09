@@ -147,6 +147,16 @@
             by GitHub; its drafts are local to that browser origin.
           </li>
           <li>
+            <strong>External database, when configured:</strong> the operator’s
+            PostgreSQL provider (for example, Neon) holds hashed owner sessions,
+            expiration times, hashed OAuth state, and encrypted
+            account-selection and connection records. The database connection
+            credential stays in Render’s private environment. The provider
+            processes infrastructure metadata and any backups under its own
+            terms. Browser drafts are not uploaded to this database by this
+            implementation.
+          </li>
+          <li>
             <strong>Email:</strong> privacy and support requests sent to the
             published Gmail address are processed by the email provider and the
             project contact.
@@ -191,17 +201,22 @@
             automatically erase the saved record.
           </li>
           <li>
-            <strong>Free testing storage:</strong> is temporary. Server sessions
-            and connections may be lost after sleep, restart, or deployment.
-            Environment settings are managed separately by the host. Losing a
-            token locally does not revoke Meta’s authorization.
+            <strong>Default Free testing storage:</strong> uses Render’s
+            temporary filesystem unless external storage has been configured. In
+            temporary mode, server sessions and connections may be lost after
+            sleep, restart, or deployment. Environment settings are managed
+            separately by the host. Losing a token locally does not revoke
+            Meta’s authorization.
           </li>
           <li>
-            <strong>Optional persistent hosting:</strong> can retain server
-            records across restarts. If an operator creates backups, those
-            copies require separate retention and deletion handling; deletion
-            from the live database does not promise instant erasure from storage
-            remnants or provider-managed systems.
+            <strong>External PostgreSQL or optional persistent hosting:</strong>
+            can retain server records across app restarts and deployments. An
+            external database has separate provider quotas, availability,
+            deletion, backup, and retention rules; it is not an indefinite
+            retention guarantee. If an operator creates backups, those copies
+            require separate retention and deletion handling; deletion from the
+            live database does not promise instant erasure from storage remnants
+            or provider-managed systems.
           </li>
           <li>
             <strong>Browser drafts and saved ideas:</strong> remain until

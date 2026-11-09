@@ -9,3 +9,8 @@ data/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+
+# Never commit private database exports/backups or connection credentials.
+*.dump
+*.backup
+backups/

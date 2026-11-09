@@ -109,6 +109,31 @@ const path = require("node:path");
     await page.getByText("Owner locked", { exact: true }).waitFor();
     status = {
       backend: true,
+      authenticated: false,
+      configured: true,
+      storageMode: "external",
+    };
+    await page.reload();
+    await page.getByText(/External database storage is active/).waitFor();
+    await page
+      .getByRole("button", { name: "Connect Instagram", exact: true })
+      .click();
+    await page
+      .getByText("External PostgreSQL storage", { exact: true })
+      .waitFor();
+    assert.equal(
+      await page
+        .getByText("Free testing mode — temporary storage", { exact: true })
+        .count(),
+      0,
+    );
+    await page
+      .getByRole("checkbox", { name: /Remember this device for 30 days/ })
+      .check();
+    await page.keyboard.press("Escape");
+
+    status = {
+      backend: true,
       authenticated: true,
       configured: true,
       connected: true,

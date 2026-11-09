@@ -38,12 +38,12 @@ localStorage is not a safe substitute.
 
 ## Durable options requiring an owner choice
 
-1. **Keep Free Render compute; add an external durable database.** This requires
-   selecting a provider/account, adding and testing a compatible database
-   adapter (the current store is SQLite), setting its credentials privately in
-   Render, and updating privacy/deletion documentation. A provider's free plan
+1. **Keep Free Render compute; add an external durable database.** The PostgreSQL adapter is now implemented, with public privacy/deletion
+   documentation covering optional external storage. You still need to create
+   a provider account/database and set its connection string privately in
+   Render. Follow [the external database setup](EXTERNAL_DATABASE.md). A provider's free plan
    can have quotas, suspension or retention limits; it is not an indefinite
-   storage guarantee. This option is not implemented or configured yet.
+   storage guarantee. The adapter is implemented; a hosted database is not provisioned or configured automatically.
 2. **Use a Render persistent disk.** The optional `render.persistent.yaml`
    already describes a paid service with a disk at `/var/data/bloom`, keeping the
    existing SQLite implementation. Only proceed with explicit billing approval;

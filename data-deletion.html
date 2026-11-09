@@ -141,11 +141,16 @@
       <section>
         <h2>5. Free testing and retention</h2>
         <p>
-          The free testing backend uses temporary storage. Account connections
-          and sessions can disappear after sleep, restart, or deployment; do not
-          rely on it for durable records or as proof of remote revocation.
-          Environment settings, provider records, and browser data are separate
-          from that temporary database.
+          By default, the free testing backend uses temporary storage. In that
+          mode, account connections and sessions can disappear after sleep,
+          restart, or deployment. If external PostgreSQL storage is configured,
+          live server records reside with the database provider and can survive
+          app deployments. Disconnect removes the live saved connection and
+          pending account selections there too; locking owner settings removes
+          the current device’s session. Provider backups and retention require
+          separate handling. Neither local data loss nor database deletion
+          proves that Meta access was revoked. Environment settings and browser
+          drafts are separate from the server database.
         </p>
         <p>
           For security, retention, service providers, and the information

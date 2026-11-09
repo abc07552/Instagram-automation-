@@ -2,24 +2,20 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import {
-  createCipheriv,
-  createDecipheriv,
-  createHash,
-  randomBytes,
-} from "node:crypto";
-
-export const hash = (value) => createHash("sha256").update(value).digest("hex");
-
-export const SESSION_TTL = 8 * 60 * 60 * 1000;
-export const REMEMBERED_SESSION_TTL = 30 * 24 * 60 * 60 * 1000;
+  CredentialCipher,
+  hash,
+  SESSION_TTL,
+  REMEMBERED_SESSION_TTL,
+} from "./credentials.js";
+export { hash, SESSION_TTL, REMEMBERED_SESSION_TTL } from "./credentials.js";
 
 // One owner, one connection. Durable storage requires a persistent, private disk.
-export class Store {
+export class Store extends CredentialCipher {
   constructor(path, secret) {
+    super(secret);
     if (path !== ":memory:")
       mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
     this.db = new DatabaseSync(path);
-    this.key = secret ? createHash("sha256").update(secret).digest() : null;
     this.db.exec(`
       PRAGMA journal_mode=WAL;
       CREATE TABLE IF NOT EXISTS sessions (
@@ -30,32 +26,6 @@ export class Store {
         id INTEGER PRIMARY KEY CHECK (id = 1), payload TEXT NOT NULL
       );
     `);
-  }
-  encrypt(value) {
-    if (!this.key) throw new Error("Encryption is not configured");
-    const iv = randomBytes(12);
-    const cipher = createCipheriv("aes-256-gcm", this.key, iv);
-    const data = Buffer.concat([
-      cipher.update(JSON.stringify(value), "utf8"),
-      cipher.final(),
-    ]);
-    return Buffer.concat([iv, cipher.getAuthTag(), data]).toString("base64");
-  }
-  decrypt(value) {
-    if (!this.key) throw new Error("Encryption is not configured");
-    const buffer = Buffer.from(value, "base64");
-    const decipher = createDecipheriv(
-      "aes-256-gcm",
-      this.key,
-      buffer.subarray(0, 12),
-    );
-    decipher.setAuthTag(buffer.subarray(12, 28));
-    return JSON.parse(
-      Buffer.concat([
-        decipher.update(buffer.subarray(28)),
-        decipher.final(),
-      ]).toString(),
-    );
   }
   newSession(raw, now, rememberDevice = false) {
     this.db.prepare("DELETE FROM sessions WHERE expires <= ?").run(now);
@@ -84,12 +54,17 @@ export class Store {
       )
       .run(hash(rawState), now + 10 * 60 * 1000, id);
   }
-  consumeOAuth(id) {
-    this.db
-      .prepare(
-        "UPDATE sessions SET oauth_state = NULL, oauth_expires = NULL WHERE id = ?",
-      )
-      .run(id);
+  consumeOAuth(id, stateHash, now) {
+    return (
+      this.db
+        .prepare(
+          "UPDATE sessions SET oauth_state = NULL, oauth_expires = NULL WHERE id = ? AND oauth_state = ? AND oauth_expires > ? AND expires > ?",
+        )
+        .run(id, stateHash, now, now).changes === 1
+    );
+  }
+  health() {
+    this.db.prepare("SELECT 1").get();
   }
   pending(id, data, now) {
     this.db
